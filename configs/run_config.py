@@ -7,9 +7,27 @@ for this project we choose "SSD MobileNet V1 FPN 640x640" for Object detectiopn 
 COCO_YEARS= 2017
 PATH_IMAGES = "images"
 PATH_ANNOTATIONS="annotations"
+PATH_TRAINED_MODELS = "models"
+PREFIX_MODEL_NAME = "my_"
 
-LIST_MODEL_TO_DOWNLOAD = ["ssd_mobilenetv1", "maskrcnn"]
-SSD_MODEL_URL = "http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8.tar.gz"
+LIST_MODEL_TO_DOWNLOAD = {
+    "ssd_resnet50_v1":"http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz",
+    "ssd_mobilenetv1":"http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8.tar.gz",
+    "maskrcnn":"http://download.tensorflow.org/models/object_detection/tf2/20200711/mask_rcnn_inception_resnet_v2_1024x1024_coco17_gpu-8.tar.gz"
+}
 
-MASK_RCNN_URL = "http://download.tensorflow.org/models/object_detection/tf2/20200711/mask_rcnn_inception_resnet_v2_1024x1024_coco17_gpu-8.tar.gz"
-PRE_TRAINED_MODEL_DIR_PATH = "pre_trained_models"
+PATH_PRE_TRAINED_MODELS = "pre_trained_models"
+
+## Train Configurations 
+
+NUM_TRAIN_STEP = 1000
+EVAL_ON_TRAIN_DATA = False # only supported in distributed training
+SAMPLE_OF_N_EVAL = None
+SAMPLE_OF_N_EVAL_ON_TRAIN = None # used when Eval on train data is true
+CHECKPOINT_EVERY_N_STEP = 1000
+RECORD_SUMMARY = True
+
+# Evalution 
+CHECKPOINT_DIR = None # path to checkpoint of model to evaluate
+
+

@@ -67,21 +67,40 @@ def Extrac_zip_file (path_to_zip,dir_to_save_into):
         # remove the tmp annotations directory
         shutil.rmtree(os.path.join(dir_to_save_into,'annotations'))
 
+def download_pre_trained_model (model_name):
+    """
+        This function check if the choosen model have already been downloaded.
+        when not the model will Downloaded and extracted: return 0
+        when yes it return 1.
+        when an error occur it return -1
+    """
+    model_url = cfg.LIST_MODEL_TO_DOWNLOAD[model_name]
 
+    file_name = (model_url.split("/")[-1]).split(".")[0] # get file name from url
 
-def pre_trained_model (model_name):
-
-    file_name = (model_name.split("/")[-1]).split(".")[0] # get file name from url
     # create directory if not exit
-    dir_path = os.path.join(cfg.PRE_TRAINED_MODEL_DIR_PATH,file_name)
-    if not os.path.exists(dir_path):
-        print("___________________ Downloading the model_____________")
-        ftpstream = urllib.request.urlopen(model_name)
-        content = tarfile.open(fileobj=ftpstream, mode="r|gz")
-        content.extractall(cfg.PRE_TRAINED_MODEL_DIR_PATH)
-        print(f"The model was correctly downloaded and saved in to {dir_path}")
+    if not os.path.exists(os.path.join(cfg.PATH_PRE_TRAINED_MODELS,file_name)):
+        if not os.path.exists(cfg.PATH_PRE_TRAINED_MODELS):
+            os.mkdir(cfg.PATH_PRE_TRAINED_MODELS)
+        try:
+            click.echo(click.style(f"\n Downloading the {file_name} model \n", bg='green', bold=True, fg='white'))
+            file_location = save_zip_from_url(model_url, cfg.PATH_PRE_TRAINED_MODELS)
+    
+            click.echo(click.style(f'\n Extraction of {file_name} ...\n',  bg='blue', bold=True, fg='white'))
+
+            # Extract tar-file to annotation directory
+            with tarfile.open(name=file_location) as tar:
+                for member in tqdm(iterable=tar.getmembers(), total=len(tar.getmembers())):
+                    tar.extract(member=member, path=cfg.PATH_PRE_TRAINED_MODELS)
+            # delete tar-file
+            os.remove(file_location)
+            return 0
+
+        except expression as identifier:
+            return -1
     else:
-        print("This Model was alredy downloaded!")
+        click.echo(click.style(f"\n {file_name} have been downloaded \n", bg='blue', bold=True, fg='white'))
+        return 1
 
 
 def download_coco():
@@ -91,7 +110,7 @@ def download_coco():
         - http://images.cocodataset.org/zips/val2017.zip
         - http://images.cocodataset.org/annotations/annotations_trainval2017.zip
 
-        - http://images.cocodataset.org/zips/test2017.zip        - 
+        - http://images.cocodataset.org/zips/test2017.zip
         - http://images.cocodataset.org/annotations/image_info_test2017.zip
     """ 
     file_type = '.zip'

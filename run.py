@@ -1,7 +1,7 @@
 from configs.run_config import *
 import argparse
 from scripts.run.download import *
-from scripts.run.do_preprocessing import *
+from scripts.run.make import *
 import click
 
 """
@@ -12,21 +12,11 @@ parser = argparse.ArgumentParser(description="Choose what you won beetwen [Data_
 parser.add_argument("--data_preprocessing", default=False, action="store_true",
     help="If you already have coco Dataset downloaded and just to create\
     the TF-record of your data.")
-## Coco data preprocessing
-
-parser.add_argument("--img_dir", default=PATH_IMAGES,
-    help="directory should content subdirectory [test, train, val].")
-
-parser.add_argument("--annot_dir", default=PATH_ANNOTATIONS,
-    help="should content annotation file for [test, train, val]")
-
-parser.add_argument("--tf_record",default=PATH_ANNOTATIONS,
-    help=".record file create during the preprocesing of data")
 
 # Train or evaluate
 parser.add_argument("--eval", default=False, action="store_true",
     help="--eval if you wont to evaluate some model. by default the choosen Model will be Train")
-parser.add_argument("-m","--model",choices=list(set(LIST_MODEL_TO_DOWNLOAD)),
+parser.add_argument("-m","--model",choices=list(set(LIST_MODEL_TO_DOWNLOAD.keys())),
     help="Choose which Model you wont to train or Evaluate")
 
 
@@ -50,7 +40,26 @@ if __name__ == "__main__":
                 raise("set directoy for data")
         # Do preprocessing
         click.echo(click.style(f"\n Create of tf record \n", bg='blue', bold=True, fg='white'))
-        success = do_create_coco_record()
+        success = make_preprocessing()
         if(success):
             click.echo(click.style(f"\n tf record created and saved in to {PATH_ANNOTATIONS} directory \n", bg='blue', bold=True, fg='white'))
-                      
+    else:
+        assert args.model,f"You should select one modelS beetwen {LIST_MODEL_TO_DOWNLOAD.keys()}"
+        success = download_pre_trained_model(args.model)
+        if success == -1:
+            click.echo(click.style(f"\n the model {args.model} coudn\'t be downloaded. Please verify that the url is still valid \n", bg='red', bold=True, fg='white'))
+            exit()
+        if success == 0:
+            click.echo(click.style(f"\n Set configuration in to pipeline.config \n", bg='red', bold=True, fg='white'))
+            exit()
+        if(args.eval): 
+            pass
+        else:
+            ## Train Model
+            click.echo(click.style(f"\n Proceed of Train of {args.model} \n", bg='green', bold=True, fg='white'))
+            train = make_train(args.model)
+            if train :
+                click.echo(click.style(f"\n Export  {args.model} \n", bg='green', bold=True, fg='white'))
+                ## do export
+            
+            

@@ -1,18 +1,17 @@
 from configs.run_config import *
 import argparse
+from scripts.run.download import *
+import click
 
 """
 """
 
 parser = argparse.ArgumentParser(description="Choose what you won beetwen [Data_preprocessing, Train, Evaluate]")
 
-## Coco data preprocessing
-parser.add_argument("--download-data", default=False, action="store_true",
-    help="set if wont to download COCO DataSet, this download data and run the preprocessing process")
-
-parser.add_argument("--data-preprocessing", default=False, action="store_true",
+parser.add_argument("--data_preprocessing", default=False, action="store_true",
     help="If you already have coco Dataset downloaded and just to create\
     the TF-record of your data.")
+## Coco data preprocessing
 
 parser.add_argument("--img_dir", default=PATH_IMAGES,
     help="directory should content subdirectory [test, train, val].")
@@ -35,5 +34,23 @@ def main(args):
     print(args)
 
 if __name__ == "__main__":
-    
-    main(LIST_MODEL_TO_DOWNLOAD)
+    args = parser.parse_args()
+    if(args.data_preprocessing):
+        click.echo(click.style(f"\n COCO DataSet 2017 will be preprocessed \n", bg='green', bold=True, fg='white'))
+        if(os.path.exists(cfg.PATH_ANNOTATIONS) or os.path.exists(cfg.PATH_IMAGES)):
+            ## Do Pre processing
+            click.echo(click.style(f"\n Create of tf record \n", bg='blue', bold=True, fg='white'))
+        else:
+            
+            click.echo('The directory image/annotations doesn\'t exist. If you still have downloaded images/ and annotations please\
+                    type n to skip and make shure you configure directories correctly: [yn] ', nl=False,)
+            c = click.getchar()
+            click.echo()
+            resp = str.capitalize(c)
+            if resp=='N':
+                exit("already downloaded")
+            else:
+                # Donwload Coco Dataset
+                download_coco_2017(2017)
+                # Do preprocessing
+                      

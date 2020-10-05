@@ -4,6 +4,7 @@ for this project we choose "SSD MobileNet V1 FPN 640x640" for Object detectiopn 
 """
 
 ## DataSet
+COCO_YEARS= 2017
 PATH_IMAGES = "images"
 PATH_ANNOTATIONS="annotations"
 

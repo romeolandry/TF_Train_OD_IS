@@ -132,3 +132,4 @@ dmypy.json
 /images
 /models
 /pre_trained_models/
+/annotations/

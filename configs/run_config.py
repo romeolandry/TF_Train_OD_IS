@@ -5,15 +5,7 @@ for this project we choose "SSD MobileNet V1 FPN 640x640" for Object detectiopn 
 
 ## DataSet
 PATH_IMAGES = "images"
-PATH_ANNOTATIONS="annotation"
-PATH_TRAIN_IMAGE ="images"
-PATH_TEST_IMAGE = "images"
-PATH_VAL_IMAGE = "images"
-
-PATH_TRAIN_ANNOTATIONS ="annotation"
-PATH_TEST_ANNOTATIONS ="annotation"
-PATH_VAL_ANNOTATIONS ="annotation"
-PATH_TF_RECORD ="annotation"
+PATH_ANNOTATIONS="annotations"
 
 LIST_MODEL_TO_DOWNLOAD = ["ssd_mobilenetv1", "maskrcnn"]
 SSD_MODEL_URL = "http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8.tar.gz"

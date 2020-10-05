@@ -84,7 +84,7 @@ def pre_trained_model (model_name):
         print("This Model was alredy downloaded!")
 
 
-def download_coco_2017(years):
+def download_coco():
     """
         this code will download coco dataset requiered image Train test val and annotation from 2017.
         - http://images.cocodataset.org/zips/train2017.zip  
@@ -93,8 +93,7 @@ def download_coco_2017(years):
 
         - http://images.cocodataset.org/zips/test2017.zip        - 
         - http://images.cocodataset.org/annotations/image_info_test2017.zip
-    """
-    years = cfg.COCO_YEARS
+    """ 
     file_type = '.zip'
     img_to_download =  ['val','test','train']
     ann_to_download = ['annotations_trainval','image_info_test']
@@ -106,7 +105,7 @@ def download_coco_2017(years):
     for ann in ann_to_download:
 
         ## build Urls
-        ann_url = base_url_ann + ann + str(years) + file_type
+        ann_url = base_url_ann + ann + str(cfg.COCO_YEARS) + file_type
         
         click.echo(click.style(f'\nDownloading of {ann} ...\n', bg='blue', bold=True, fg='white'))
         click.echo(f'{ann} will be downloaded')
@@ -124,7 +123,7 @@ def download_coco_2017(years):
     click.echo(click.style(f"\n DOWNLOAD IMAGES \n", bg='green', bold=True, fg='white'))
     for dataset in img_to_download:
         ## build Urls
-        dataset_img_url = base_url_images + dataset + str(years) + file_type
+        dataset_img_url = base_url_images + dataset + str(cfg.COCO_YEARS) + file_type
         
         click.echo(click.style(f'\n Downloading of {dataset} ...\n',  bg='blue', bold=True, fg='white'))
         click.echo(f'{dataset} will be downloaded')

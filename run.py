@@ -1,6 +1,7 @@
 from configs.run_config import *
 import argparse
 from scripts.run.download import *
+from scripts.run.do_preprocessing import *
 import click
 
 """
@@ -37,20 +38,19 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if(args.data_preprocessing):
         click.echo(click.style(f"\n COCO DataSet 2017 will be preprocessed \n", bg='green', bold=True, fg='white'))
-        if(os.path.exists(cfg.PATH_ANNOTATIONS) or os.path.exists(cfg.PATH_IMAGES)):
-            ## Do Pre processing
-            click.echo(click.style(f"\n Create of tf record \n", bg='blue', bold=True, fg='white'))
-        else:
-            
-            click.echo('The directory image/annotations doesn\'t exist. If you still have downloaded images/ and annotations please\
-                    type n to skip and make shure you configure directories correctly: [yn] ', nl=False,)
+        if not (os.path.exists(cfg.PATH_ANNOTATIONS) or os.path.exists(cfg.PATH_IMAGES)):
+            click.echo('The directory image/annotations doesn\'t exist. If you still have downloaded images/ and annotations please type n to skip and make shure you configure directories correctly: [yn] ', nl=False,)
             c = click.getchar()
             click.echo()
             resp = str.capitalize(c)
-            if resp=='N':
-                exit("already downloaded")
-            else:
+            if resp=='Y':
                 # Donwload Coco Dataset
-                download_coco_2017(2017)
-                # Do preprocessing
+                download_coco()
+            else:
+                raise("set directoy for data")
+        # Do preprocessing
+        click.echo(click.style(f"\n Create of tf record \n", bg='blue', bold=True, fg='white'))
+        success = do_create_coco_record()
+        if(success):
+            click.echo(click.style(f"\n tf record created and saved in to {PATH_ANNOTATIONS} directory \n", bg='blue', bold=True, fg='white'))
                       

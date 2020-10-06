@@ -133,3 +133,4 @@ dmypy.json
 /models
 /pre_trained_models/
 /annotations/
+/exported_models/

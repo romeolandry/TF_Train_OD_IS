@@ -9,6 +9,8 @@ PATH_IMAGES = "images"
 PATH_ANNOTATIONS="annotations"
 PATH_TRAINED_MODELS = "models"
 PREFIX_MODEL_NAME = "my_"
+PATH_TO_EXPORT_DIR = "exported_models"
+SUFIX_EXPORT = "_saved"
 
 LIST_MODEL_TO_DOWNLOAD = {
     "ssd_resnet50_v1":"http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz",
@@ -29,5 +31,9 @@ RECORD_SUMMARY = True
 
 # Evalution 
 CHECKPOINT_DIR = None # path to checkpoint of model to evaluate
+
+# Export 
+
+INPUT_TYPE = ['image_tensor', 'encoded_image_string_tensor', 'tf_example','float_image_tensor']
 
 

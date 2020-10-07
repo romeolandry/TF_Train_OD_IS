@@ -85,6 +85,6 @@ the directory Label_map content label-map for coco dataset
 
 Or run the following command to download and unpack the [available pre-trained]() model
 
-    python run.py -m maskrcnn
+    python run.py -m [model_name]
 
 if the given model have already be downloaded, the training and evaluation will start, else it will be downlaoded.

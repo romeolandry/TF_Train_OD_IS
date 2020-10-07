@@ -57,8 +57,6 @@ if __name__ == "__main__":
         else:
             ## Train Model
             click.echo(click.style(f"\n Proceed of Train of {args.model} \n", bg='green', bold=True, fg='white'))
-            exported = make_export(args.model)
-            exit(exported)
             train = make_train(args.model)
             if train :
                 click.echo(click.style(f"\n Export  {args.model} \n", bg='green', bold=True, fg='white'))

@@ -54,7 +54,7 @@ you should see
 ## Download and Preprocess data
 - create TF-record file:
     
-    If you train on COCO and you have alredy download the dataset, make you create the directory `annotations` and `images` with is subdirectory
+    If you train on COCO and you have alredy download the dataset, make you create the directory `annotations` and `images` as subdirectory
 
         Project_dir/
         ├─ ...
@@ -68,7 +68,7 @@ you should see
         ├─..
         └─ ...
     
-    Run the following command to generate record file. If project doesn't content images and annotation, the coco dataset will be automaticly downloaded.
+    Run the following command to generate record file. If project doesn't content images and annotation, the coco dataset will be automaticly downloaded and unpack.
 
         python run.py --data_preprocessing
     

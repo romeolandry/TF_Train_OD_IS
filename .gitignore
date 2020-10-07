@@ -131,6 +131,6 @@ dmypy.json
 # Project directory
 /images
 /models
-/pre_trained_models/
-/annotations/
-/exported_models/
+/pre_trained_models
+/annotations
+/exported_models

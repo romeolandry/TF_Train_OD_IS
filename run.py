@@ -11,14 +11,10 @@ parser = argparse.ArgumentParser(description="Choose what you won beetwen [Data_
 
 parser.add_argument("--data_preprocessing", default=False, action="store_true",
     help="If you already have coco Dataset downloaded and just to create\
-    the TF-record of your data.")
+    the TF-record of your data.")    
 
-# Train or evaluate
-parser.add_argument("--eval", default=False, action="store_true",
-    help="--eval if you wont to evaluate some model. by default the choosen Model will be Train")
 parser.add_argument("-m","--model",choices=list(set(LIST_MODEL_TO_DOWNLOAD.keys())),
     help="Choose which Model you wont to train or Evaluate")
-
 
 def main(args):
 
@@ -52,15 +48,12 @@ if __name__ == "__main__":
         if success == 0:
             click.echo(click.style(f"\n Set configuration in to pipeline.config \n", bg='red', bold=True, fg='white'))
             exit()
-        if(args.eval): 
-            pass
-        else:
-            ## Train Model
-            click.echo(click.style(f"\n Proceed of Train of {args.model} \n", bg='green', bold=True, fg='white'))
-            train = make_train_eval(args.model)
-            if train :
-                click.echo(click.style(f"\n Export  {args.model} \n", bg='green', bold=True, fg='white'))
-                ## do export
-                exported = make_export(args.model)
+        ## Train Model
+        click.echo(click.style(f"\n Proceed of Train of {args.model} \n", bg='green', bold=True, fg='white'))
+        train = make_train_eval(args.model)
+        if train :
+            click.echo(click.style(f"\n Export  {args.model} \n", bg='green', bold=True, fg='white'))
+            ## do export
+            exported = make_export(args.model)
             
             

@@ -141,9 +141,9 @@ def make_export(model_name):
     
     output_dir = os.path.join(PATH_TRAINED_MODELS,new_file_name)
     command = 'python scripts/api_scrpit/exporter_main_v2.py '
-    arguments =' --pipeline_config_path=' + path_to_pipeline + ' --trained_checkpoint_dir=' \
+    arguments ='--input_type '+ INPUT_TYPE[0] + ' --pipeline_config_path=' + path_to_pipeline + ' --trained_checkpoint_dir=' \
         + trained_checkpoint_dir + ' --output_directory=' +  output_dir
-    
+
     try:
         subprocess.call(command + arguments, shell= True)
         return True

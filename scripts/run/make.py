@@ -5,7 +5,7 @@ import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "4"
+#os.environ['CUDA_VISIBLE_DEVICES'] = "4"
 
 sys.path.append(os.path.abspath(os.curdir))
 
@@ -42,7 +42,41 @@ def make_preprocessing ():
         pass
     return False
 
-def make_train_eval(model_name):
+def make_train(model_name):
+    """
+    Execute the model_main_tf2.py provided by the Api to train an selected model.
+    the trained model will be save into model/ directory. this will create if not exist.
+    """
+    # check if dirctory exist
+    model_url = LIST_MODEL_TO_DOWNLOAD[model_name] # get model url from
+    file_name = (model_url.split("/")[-1]).split(".")[0] # file name from url
+    file_name = file_name.split('.')[0] # get file name without extension
+
+    new_file_name = PREFIX_MODEL_NAME + file_name # add prefixe
+    
+    if not os.path.exists(os.path.join(PATH_TRAINED_MODELS,new_file_name)):
+        if not os.path.exists(PATH_TRAINED_MODELS):
+            os.mkdir(PATH_TRAINED_MODELS)
+        os.mkdir(os.path.join(os.path.join(PATH_TRAINED_MODELS,new_file_name)))
+    
+    ##  get pipeline path
+    if not os.path.isfile(os.path.join(PATH_PRE_TRAINED_MODELS,file_name,'pipeline.config')):
+        assert "Pre-trained model don't have config"
+    
+    path_to_pipeline = os.path.join(PATH_PRE_TRAINED_MODELS,file_name,'pipeline.config')
+    path_to_save_trained_model = os.path.join(PATH_TRAINED_MODELS,new_file_name)
+    
+    command = 'python scripts/api_scrpit/model_main_tf2.py '
+    arguments = '--model_dir='+ path_to_save_trained_model +' --pipeline_config_path='+ path_to_pipeline + \
+        ' --num_train_steps='+ str(NUM_TRAIN_STEP) + ' --checkpoint_every_n=' + str(CHECKPOINT_EVERY_N_STEP)
+    try:
+        subprocess.call(command + arguments, shell= True)
+        return True
+    except subprocess.CalledProcessError as exc:
+        print("Status : FAIL", exc.returncode, exc.output)
+        return False
+
+def make_eval(model_name):
     """
     Execute the model_main_tf2.py provided by the Api to train an selected model.
     the trained model will be save into model/ directory. this will create if not exist.

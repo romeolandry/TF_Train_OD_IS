@@ -36,4 +36,12 @@ CHECKPOINT_DIR = None # path to checkpoint of model to evaluate
 
 INPUT_TYPE = ['image_tensor', 'encoded_image_string_tensor', 'tf_example','float_image_tensor']
 
+# Convertor
+PATH_TO_CONVERTED_MODELS = "models_converted"
+PATH_KERAS_TO_TF = "tf_from_keras"
+
+# TF-TRT
+MAX_WORSPACE_SIZE_BITES = 8*(10**9)
+
+PRECISION_MODE = "FP32" # FP32 FP16 INT8 ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
 

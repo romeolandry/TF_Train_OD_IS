@@ -134,3 +134,5 @@ dmypy.json
 /pre_trained_models
 /annotations
 /exported_models
+/models_converted
+/tf_from_keras

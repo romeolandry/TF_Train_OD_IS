@@ -1,0 +1,16 @@
+{
+    "keras_model_sign_rop_vgg_ohne_gen_1_TFTRT_INT8": {
+        "ORIGINAL": "/home/kamgo-gpu/Dokumente/Projekts/Verkehrszeichenerkennung/jupyter/keras_model_sign_rop_vgg_ohne_gen_1.h5",
+        "PRECISION_MODE": "int8",
+        "MAX_WORSPACE_SIZE_BITES": 8000000000,
+        "CONVERSION_TYPE": "TensorFlow-TensorRT",
+        "CONVERTED_MODEL": "models_converted/keras_model_sign_rop_vgg_ohne_gen_1_TFTRT_INT8"
+    },
+    "keras_model_sign_rop_vgg_ohne_gen_1_TFTRT_F16": {
+        "ORIGINAL": "/home/kamgo-gpu/Dokumente/Projekts/Verkehrszeichenerkennung/jupyter/keras_model_sign_rop_vgg_ohne_gen_1.h5",
+        "PRECISION_MODE": "fp16",
+        "MAX_WORSPACE_SIZE_BITES": 8000000000,
+        "CONVERSION_TYPE": "TensorFlow-TensorRT",
+        "CONVERTED_MODEL": "models_converted/keras_model_sign_rop_vgg_ohne_gen_1_TFTRT_F16"
+    }
+}

@@ -49,11 +49,29 @@ def main(args):
             if resp=='N':
                 raise("changed input size image")
 
-
         batched_input = batch_input(batch_size=args.batch_size, input_size=[args.input_size,args.input_size,3], path_to_test_img_dir='images/test2017')
 
         con = Convertor(args.path,args.precision_mode,args.max_ws)
-        con.convert_to_TF_TRT_graph_and_save(calibration_data=batched_input)
+        original_path,saved_model_path = con.convert_to_TF_TRT_graph_and_save(calibration_data=batched_input)
+
+        # save performance
+        if args.type == 'tftrt':
+            mode = 'TensorFlow-TensorRT'
+        else:
+            mode = 'UFF_Parser'
+        value = {
+            'ORIGINAL': original_path,
+            'PRECISION_MODE': args.precision_mode,
+            'MAX_WORSPACE_SIZE_BITES': args.max_ws,
+            'CONVERSION_TYPE': mode,
+            'CONVERTED_MODEL':saved_model_path
+        }
+        model_name = os.path.basename(saved_model_path)
+        to_save = {
+            model_name:value,
+        }
+        save_perfromance('convertor',to_save)
+
 
 if __name__ == "__main__":
     args = parser.parse_args()

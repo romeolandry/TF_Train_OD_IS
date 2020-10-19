@@ -1,10 +1,12 @@
 import os 
 import sys
+import json
 
 import tensorflow as tf
 from tensorflow import keras
 
 from tensorflow.python.compiler.tensorrt import trt_convert as trt
+import convert_to_uff
 
 from pathlib import Path
 import click
@@ -65,6 +67,8 @@ class Convertor:
             keras_model = self.keras_to_frozen_graph()
             path_to_convert = os.path.join(PATH_KERAS_TO_TF,self.__model_name)
             tf.saved_model.save(keras_model,path_to_convert)
+            # change model model name
+            self.__model_name = os.path.splitext(os.path.basename(self.__path_to_model))[0]
             self.__path_to_model = path_to_convert
 
         # check integrity of model
@@ -76,6 +80,8 @@ class Convertor:
 
     def convert_to_TF_TRT_graph_and_save(self,calibration_data = None):
         assert self.__precision_mode in ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8'], f" the given precision mode {self.__precision_mode} not supported.\n It should be one of {['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']}"
+        
+        original_name = self.__path_to_model
         
         # Check which model have be given
         self.__path_to_model = self.check_model_path()
@@ -102,7 +108,6 @@ class Convertor:
             input_saved_model_dir=self.__path_to_model,
             conversion_params=conversion_params
         )
-
         click.echo(click.style(f"\n Converting {self.__model_name} with an precision mode of {self.__precision_mode}\n", bg='green', bold=True, fg='white'))
 
         if self.__precision_mode == trt.TrtPrecisionMode.INT8:
@@ -115,3 +120,7 @@ class Convertor:
         click.echo(click.style(f"\n Saving {self.__model_name} \n", bg='green', bold=True, fg='white'))
         converter.save(output_saved_model_dir = output_saved_model_dir)
         click.echo(click.style(f"\n Complet \n", bg='green', bold=True, fg='white'))
+        
+        return original_name,output_saved_model_dir
+
+

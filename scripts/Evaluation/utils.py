@@ -1,6 +1,6 @@
 import os
 import sys
-import configparser
+import json
 
 import numpy as np
 import tensorflow as tf
@@ -71,3 +71,19 @@ def batch_input (batch_size=8, input_size=[299,299,3], path_to_test_img_dir=''):
         batched_input[i, :] =x
         batched_input = tf.constant(batched_input) 
         return batched_input
+
+def save_perfromance(status_to_save, json_daten):
+    if not os.path.isdir('performances'):
+        os.mkdir('performances')
+    
+    if status_to_save == "convertor":
+
+        if not os.path.isfile(PATH_PERFORMANCE_CONVERT):
+            with open (PATH_PERFORMANCE_CONVERT,'w+') as json_file:
+                json.dump(json_daten,json_file)
+        else:
+            with open (PATH_PERFORMANCE_CONVERT,'r+') as js_file:
+                data = json.load(js_file)
+                data.update(json_daten)
+                js_file.seek(0)
+                json.dump(data,js_file)

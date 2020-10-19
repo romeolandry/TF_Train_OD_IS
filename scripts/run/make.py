@@ -5,7 +5,7 @@ import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-#os.environ['CUDA_VISIBLE_DEVICES'] = "4"
+os.environ['CUDA_VISIBLE_DEVICES'] = "3,4"
 
 sys.path.append(os.path.abspath(os.curdir))
 
@@ -68,7 +68,7 @@ def make_train(model_name):
     
     command = 'python scripts/api_scrpit/model_main_tf2.py '
     arguments = '--model_dir='+ path_to_save_trained_model +' --pipeline_config_path='+ path_to_pipeline + \
-        ' --num_train_steps='+ str(NUM_TRAIN_STEP) + ' --checkpoint_every_n=' + str(CHECKPOINT_EVERY_N_STEP)
+        ' --num_train_steps='+ str(NUM_TRAIN_STEP)
     try:
         subprocess.call(command + arguments, shell= True)
         return True
@@ -102,8 +102,7 @@ def make_eval(model_name):
     
     command = 'python scripts/api_scrpit/model_main_tf2.py '
     arguments = '--model_dir='+ path_to_save_trained_model +' --pipeline_config_path='+ path_to_pipeline + \
-        ' --num_train_steps='+ str(NUM_TRAIN_STEP) + ' --checkpoint_every_n=' + str(CHECKPOINT_EVERY_N_STEP) \
-            +' --checkpoint_dir=' + path_to_save_trained_model
+        ' --num_train_steps='+ str(NUM_TRAIN_STEP) +' --checkpoint_dir=' + path_to_save_trained_model
 
     try:
         subprocess.call(command + arguments, shell= True)

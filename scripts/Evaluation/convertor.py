@@ -68,7 +68,7 @@ class Convertor:
             self.__path_to_model = path_to_convert
 
         # check integrity of model
-        if not an(fname.endswith('.pb') for fname in os.listdir(self.__path_to_model)):
+        if not (fname.endswith('.pb') for fname in os.listdir(self.__path_to_model)):
             raise(f"the model do not content .pb file. Please make sure \n the directory {self.__path_to_model} is an tF model")
 
         # return tensorflow frozen graph
@@ -77,6 +77,9 @@ class Convertor:
     def convert_to_TF_TRT_graph_and_save(self,calibration_data = None):
         assert self.__precision_mode in ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8'], f" the given precision mode {self.__precision_mode} not supported.\n It should be one of {['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']}"
         
+        # Check which model have be given
+        self.__path_to_model = self.check_model_path()
+
         if self.__precision_mode in ['FP32','fp32']:
             self.__model_name = self.__model_name + '_TFTRT_F32'
 
@@ -105,9 +108,7 @@ class Convertor:
         if self.__precision_mode == trt.TrtPrecisionMode.INT8:
             def calibraion_input_fn():
                 yield(calibration_data,)
-            
-            print(calibraion_input_fn)
-            #converter.convert(calibraion_input_fn)
+            converter.convert(calibraion_input_fn)
         else:
             converter.convert()
         

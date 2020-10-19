@@ -148,7 +148,7 @@ def download_coco():
         click.echo(f'{dataset} will be downloaded')
 
         zip_filename_location = save_zip_from_url(dataset_img_url,cfg.PATH_IMAGES)
-        click.echo(f"the downloaded zip file was saved in to {zip_filename_location} ")
+        click.echo(f"the downloaded zip file was saved in to {zip_filename_location}")
         click.echo(click.style(f'\n Extraction of {dataset} ...\n',  bg='blue', bold=True, fg='white'))
         click.echo(f'{dataset} will be extracted and the zip-File will be deleted')
 

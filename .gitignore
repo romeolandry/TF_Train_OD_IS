@@ -137,3 +137,6 @@ dmypy.json
 /models_converted
 /tf_from_keras
 /images_infrenced
+
+# not project directories
+/Evaluationsmodel

@@ -136,3 +136,5 @@ dmypy.json
 /exported_models
 /models_converted
 /tf_from_keras
+/images_infrenced
+/performances

@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 # Project directories
+/.vscode
 /images
 /models
 /pre_trained_models

@@ -16,11 +16,36 @@ from configs.run_config import *
 from scripts.api_scrpit import *
 
 
-def load_img_from_folder(path_folder):
+def load_img_from_folder(path_folder, anzahl = None):
+    """
+        load image from file into numpy array.
+
+        put each image into an numpy array  to feed tensorflow.
+        the numpy shape have the following struckture.
+        (height, width, channels) channels=3
+
+        Args:
+        path to image folder
+        number of image to load. default is None all the image will been loaded
+
+        Returns:
+           list of  uint8 numpy array with shape (img_height, img_width, 3)        
+    """
     img_list = []
-    for filename in glob.glob(path_folder + '/*.jpg'):
-        img = Image.open(filename)
-        img_list.append(img)
+    if os.path.isdir(path_folder):
+        count = 0
+        for filename in glob.glob(path_folder + '/*.jpg'):
+            print(F"Read file {filename}")
+            img = Image.open(filename)
+            img_list.append(np.array(img))
+            count +=1
+            if (anzahl != None) and (count == anzahl):
+                break
+    else:
+        print(f" Read file {path_folder}")
+        img = Image.open(path_folder)
+        img_list.append(np.array(img))
+    print("all image was readed !")
     return img_list
 
 def predict_and_benchmark_throughput(batched_input, infer, N_warmup_run=50, N_run=1000):
@@ -54,8 +79,6 @@ def predict_and_benchmark_throughput(batched_input, infer, N_warmup_run=50, N_ru
     return all_preds, totall_time
 
 def batch_input (batch_size=8, input_size=[299,299,3], path_to_test_img_dir=''):
-
-    #list_img =  load_img_from_folder(path_to_test_img_dir)
 
     batched_input = np.zeros((batch_size,input_size[0],input_size[1],input_size[2]), dtype=np.float32)
    

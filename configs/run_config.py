@@ -9,6 +9,7 @@ PATH_IMAGES = "images"
 PATH_ANNOTATIONS="annotations"
 PATH_TRAINED_MODELS = "models"
 PREFIX_MODEL_NAME = "my_"
+PATH_TO_LABELS_MAP = "Label_map/mscoco_complete_label_map.pbtxt"
 PATH_TO_EXPORT_DIR = "exported_models"
 SUFIX_EXPORT = "_saved"
 
@@ -46,5 +47,6 @@ MAX_WORSPACE_SIZE_BITES = 8*(10**9)
 PRECISION_MODE = "FP32" # FP32 FP16 INT8 ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
 
 PATH_PERFORMANCE_CONVERT = "performances/convertort.json"
-PATH_PERFORMANCE_INFER = "performances/Inferences.json"
+PATH_PERFORMANCE_INFER = "performances/evaluation.json"
+PATH_DIR_IMAGE_INF = "images_infrenced"
 

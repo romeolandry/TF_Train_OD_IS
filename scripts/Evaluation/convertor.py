@@ -6,7 +6,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from tensorflow.python.compiler.tensorrt import trt_convert as trt
-import convert_to_uff
 
 from pathlib import Path
 import click

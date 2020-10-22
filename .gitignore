@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Project directory
+# Project directories
 /images
 /models
 /pre_trained_models
@@ -137,4 +137,3 @@ dmypy.json
 /models_converted
 /tf_from_keras
 /images_infrenced
-/performances

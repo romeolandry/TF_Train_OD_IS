@@ -47,6 +47,6 @@ MAX_WORSPACE_SIZE_BITES = 8*(10**9)
 PRECISION_MODE = "FP32" # FP32 FP16 INT8 ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
 
 PATH_PERFORMANCE_CONVERT = "performances/convertort.json"
-PATH_PERFORMANCE_INFER = "performances/evaluation.json"
+PATH_PERFORMANCE_INFER = "performances"
 PATH_DIR_IMAGE_INF = "images_infrenced"
 

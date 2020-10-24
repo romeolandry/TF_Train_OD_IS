@@ -16,7 +16,7 @@ from configs.run_config import *
 from scripts.api_scrpit import *
 
 
-def load_img_from_folder(path_folder, anzahl = None):
+def load_img_from_folder(path_folder, anzahl = None, mAP = False, bacth_size= 32,image_size = [640,640]):
     """
         load image from file into numpy array.
 
@@ -32,21 +32,33 @@ def load_img_from_folder(path_folder, anzahl = None):
            list of  uint8 numpy array with shape (img_height, img_width, 3)        
     """
     img_list = []
+    batch_number = 0
+    count = 0
+    total_file = len(glob.glob1(path_folder + '/','*.jpg'))
+    total_loaded = 0
+    if anzahl is not None:
+        total_file = anzahl
+    
     if os.path.isdir(path_folder):
-        count = 0
         for filename in glob.glob(path_folder + '/*.jpg'):
-            print(F"Read file {filename}")
-            img = Image.open(filename)
-            img_list.append(np.array(img))
+            img = Image.open(filename).resize((image_size[0],image_size[1]))
+            if not mAP:
+                img_list.append(np.array(img))
+            else:
+                # get Id of image
+                imageId = int(filename.split('.')[0].split('/')[-1]) 
+                img_list.append({'imageId':imageId,
+                                 'np_image':np.array(img)})
             count +=1
-            if (anzahl != None) and (count == anzahl):
-                break
+            if (count == total_file):
+                yield img_list
+            
+            if (count % bacth_size == 0):
+                yield img_list
     else:
-        print(f" Read file {path_folder}")
         img = Image.open(path_folder)
         img_list.append(np.array(img))
-    print("all image was readed !")
-    return img_list
+        return img_list
 
 def predict_and_benchmark_throughput(batched_input, infer, N_warmup_run=50, N_run=1000):
     elapsed_time = []
@@ -95,7 +107,7 @@ def batch_input (batch_size=8, input_size=[299,299,3], path_to_test_img_dir=''):
         batched_input = tf.constant(batched_input) 
         return batched_input
 
-def save_perfromance(status_to_save, json_daten):
+def save_perfromance(status_to_save, json_daten,file_name=None):
     if not os.path.isdir('performances'):
         os.mkdir('performances')
     
@@ -110,3 +122,7 @@ def save_perfromance(status_to_save, json_daten):
                 data.update(json_daten)
                 js_file.seek(0)
                 json.dump(data,js_file)
+
+    if(status_to_save=='prediction'):
+        with open (os.path.join(PATH_PERFORMANCE_INFER,file_name),'w+') as json_file:
+            json_file.write(json.dumps(json_daten, indent=4))

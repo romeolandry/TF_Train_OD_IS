@@ -1,6 +1,5 @@
 import os
 import sys
-import tensorflow as tf
 import time
 import click
 import matplotlib.pyplot as plt
@@ -10,22 +9,17 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
+import tensorflow as tf
+
 sys.path.append(os.path.abspath(os.curdir))
 
 from configs.run_config import *
 from scripts.api_scrpit import *
 from scripts.Evaluation.utils import *
-from pathlib import Path
 
 from scripts.api_scrpit import label_map_util
 from scripts.api_scrpit import visualization_utils as viz_utils
 
-from object_detection.utils import config_util
-from object_detection.builders import model_builder
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
-tf.get_logger().setLevel('ERROR')
 
 # Enable GPU dynamic memory allocation
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -37,65 +31,23 @@ for gpu in gpus:
 class Inefrence :
     def __init__(self,
                  path_to_images,
-                 path_to_model,
                  path_to_labels,
-                 checkpoint = 'ckpt-0'):
+                 model,
+                 model_name):
         self.__path_to_images = path_to_images
-        self.__path_to_model = path_to_model
         self.__path_to_labels = path_to_labels
-        self.__checkpoint = checkpoint
-        self.__detection_model = None
+        self.__model = model
+        self.__images_name_prefix = model_name
 
         ## create category index for coco 
         self.__category_index = label_map_util.create_category_index_from_labelmap(self.__path_to_labels,use_display_name=True)
 
-        if os.path.basename(self.__path_to_model) != 'saved_model':
-            self.__images_name_prefix = os.path.basename(self.__path_to_model)
-        else:
-            self.__images_name_prefix = self.__path_to_model.split('/')[-2]
-
-    def Load_model(self):
-        """
-            This function load the from a given path.
-            the given model can be an keras model or an tensorflow model.
-            If a keras-model is given it will converted in to a tensorflow model saved and load as tensorflow model
-
-            Arg: Path to modelö directory for Tensorflow or .h5 for keras
-
-            Return: model
-        """
-        # check if is keras .h5 oder a tensorflow model
-        elapstime = 0
-        if Path(self.__path_to_model).suffix == '.h5':
-            click.echo(click.style(f"\n keras model will be loaded \n", bg='green', bold=True, fg='white'))
-            keras_model = self.keras_to_frozen_graph()
-            path_to_convert = os.path.join(PATH_KERAS_TO_TF,self.__model_name)
-            tf.saved_model.save(keras_model,path_to_convert)
-            self.__path_to_model = path_to_convert
-        
-        try:
-            click.echo(click.style(f"\n tensorflow frozen grahp will loaded. \n", bg='green', bold=True, fg='white'))
-            start_time = time.time()
-            model = tf.saved_model.load(self.__path_to_model)
-            end_time = time.time()
-            elapstime = end_time - start_time
-
-        except FileExistsError:
-            raise(f"The save model {self.__path_to_model} can't be loaded!")
-
-        # return tensorflow frozen graph
-        click.echo(click.style(f"\n the model was loaded in {elapstime} seconds. \n", bg='green', bold=True, fg='white'))
-        return model
 
     def infernce_images_from_dir(self, number_of_images=None):
 
         images_list = []
         print(f"loading {number_of_images} images from {self.__path_to_images}")
         images_list = load_img_from_folder(self.__path_to_images,number_of_images)
-        # get loaded model
-        print("loading model")
-        model = self.Load_model()
-        print("terminate")
 
         i = 0
         for image_np in images_list:
@@ -103,7 +55,7 @@ class Inefrence :
             input_tensort = tf.convert_to_tensor(image_np)
             input_tensort = input_tensort[tf.newaxis,...]
 
-            detections = model(input_tensort)
+            detections = self.__model(input_tensort)
             num_detections = int(detections.pop('num_detections'))
             detections = {key: value[0, :num_detections].numpy()
                           for key, value in detections.items()}
@@ -135,30 +87,13 @@ class Inefrence :
         print('Done')
             #plt.show()
 
-    def build_detection_model(self):
-
-        if not os.path.isfile (os.path.join(self.__path_to_model,'pipeline.config')):
-            raise("the model dont content configuration")
-
-        # Load pipeline config and build a detection model
-        configs = config_util.get_configs_from_pipeline_file(os.path.join(self.__path_to_model,'pipeline.config'))
-        model_config = configs['model']
-        self.__detection_model = model_builder.build(model_config=model_config, is_training=False)
-
-        # Restore checkpoint pre_trained_models/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8/checkpoint
-        if not os.path.isdir(os.path.join(self.__path_to_model,'checkpoint/')):
-            raise("there isn't checkpoint in to given driectory")
-        
-        ckpt = tf.compat.v2.train.Checkpoint(model=self.__detection_model)
-        ckpt.restore(os.path.join(self.__path_to_model,'checkpoint/' + self.__checkpoint)).expect_partial()
-
     @tf.function
     def detect_fn(self,image):
 
         """Detect objects in image."""
-        image, shapes = self.__detection_model.preprocess(image)
-        prediction_dict = self.__detection_model.predict(image, shapes)
-        detections = self.__detection_model.postprocess(prediction_dict, shapes)
+        image, shapes = self.__model.preprocess(image)
+        prediction_dict = self.__model.predict(image, shapes)
+        detections = self._model.postprocess(prediction_dict, shapes)
 
         return detections, prediction_dict, tf.reshape(shapes, [-1])
 

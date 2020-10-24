@@ -11,6 +11,7 @@ from scripts.run.download import *
 from scripts.run.make import *
 from scripts.Evaluation.utils import *
 from scripts.Evaluation.inference import Inefrence
+from scripts.run.model  import Model
 
 
 parser = argparse.ArgumentParser(description="Inference model. saved model or converted model")
@@ -36,20 +37,30 @@ parser.add_argument("--checkpoint", default='ckpt-0',
 
 
 def main(args):
+    model = Model(args.path_to_model,
+                  args.checkpoint)
     if args.web_cam:
+        ## build model from checkpoint
+        
+        detection_model, model_name = model.build_detection_model()
+        
         click.echo(click.style(f"\n Start inference using web cam\n", bg='green', bold=True, fg='white'))
-        infer = Inefrence(args.path_to_images,
-                          args.path_to_model,
-                          args.path_to_label,
-                          args.checkpoint)
+        
+        infer = Inefrence(path_to_images=args.path_to_images,
+                          path_to_labels=args.path_to_label,
+                          model=detection_model,
+                          model_name=model_name)
+        
         infer.inference_from_wedcam_with_checkpoint()      
     else:
+        # Load model from saved model .pb
+
+        detection_model, model_name = model.Load_model()
         click.echo(click.style(f"\n Start inferance from {args.path_to_images} ... \n", bg='green', bold=True, fg='white'))
-        
-        infer = Inefrence(args.path_to_images,
-                          args.path_to_model,
-                          args.path_to_label,
-                          args.checkpoint)
+        infer = Inefrence(path_to_images=args.path_to_images,
+                          path_to_labels=args.path_to_label,
+                          model=detection_model,
+                          model_name=model_name)
         infer.infernce_images_from_dir(int(args.number_of_image))
 
 if __name__ == "__main__":

@@ -47,15 +47,13 @@ class Inefrence :
 
         images_list = []
         print(f"loading {number_of_images} images from {self.__path_to_images}")
-        images_list = load_img_from_folder(self.__path_to_images,number_of_images)
-
+        images_list = load_img_from_folder_for_infer(self.__path_to_images,number_of_images)
         i = 0
         for image_np in images_list:
             # convert images to be a tensor
-            input_tensort = tf.convert_to_tensor(image_np)
-            input_tensort = input_tensort[tf.newaxis,...]
-
-            detections = self.__model(input_tensort)
+            input_tensor = tf.convert_to_tensor(image_np)
+            input_tensor = input_tensor[tf.newaxis, ...]
+            detections = self.__model(input_tensor)
             num_detections = int(detections.pop('num_detections'))
             detections = {key: value[0, :num_detections].numpy()
                           for key, value in detections.items()}

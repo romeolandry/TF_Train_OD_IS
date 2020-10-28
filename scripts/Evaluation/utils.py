@@ -60,6 +60,40 @@ def load_img_from_folder(path_folder, anzahl = None, mAP = False, bacth_size= 32
         img_list.append(np.array(img))
         return img_list
 
+
+def load_img_from_folder_for_infer(path_folder, anzahl = None,image_size = [640,640]):
+    """
+        load image from file into numpy array.
+
+        put each image into an numpy array  to feed tensorflow.
+        the numpy shape have the following struckture.
+        (height, width, channels) channels=3
+
+        Args:
+        path to image folder
+        number of image to load. default is None all the image will been loaded
+
+        Returns:
+           list of  uint8 numpy array with shape (img_height, img_width, 3)        
+    """
+    img_list = []
+    count = 0
+
+    if os.path.isdir(path_folder):
+        for filename in glob.glob(path_folder + '/*.jpg'):
+            img = Image.open(filename).resize((image_size[0],image_size[1]))
+            img_list.append(np.array(img))
+
+            count +=1
+            if (anzahl is not None) and (count == anzahl):
+                break
+        return img_list
+    else:
+        img = Image.open(path_folder)
+        img_list.append(np.array(img))
+        return img_list
+
+
 def predict_and_benchmark_throughput(batched_input, infer, N_warmup_run=50, N_run=1000):
     elapsed_time = []
     all_preds = []

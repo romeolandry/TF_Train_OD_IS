@@ -43,7 +43,7 @@ if __name__ == "__main__":
                       detection_model,
                       model_name,
                       args.path_to_ann,
-                      args.batch_size)
+                      int(args.batch_size))
 
-    evaluate.generate_detecttion_results()
+    evaluate.generate_detection_results()
     evaluate.COCO_mAP_bbox()

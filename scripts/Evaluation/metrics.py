@@ -79,7 +79,7 @@ class Evaluation:
         totall_time = N_run * batch_size / elapsed_time.sum()
         return all_detections, totall_time
 
-    def generate_detecttion_results(self):
+    def generate_detection_results(self):
         """
         Run detection on each image an write result into Json file
         """

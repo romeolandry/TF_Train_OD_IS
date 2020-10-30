@@ -26,7 +26,7 @@ parser.add_argument("-b","--batch_size", default=32,
 parser.add_argument("--path_to_images", default=PATH_IMAGES +'/val2017' ,
     help="the path to directory of images or image path")
 
-parser.add_argument("--path_to_ann", default=PATH_ANNOTATIONS +'/val2017' ,
+parser.add_argument("--path_to_ann", default=PATH_ANNOTATIONS +'/instances_val2017.json' ,
     help="the path to annotation file")
 
 parser.add_argument("--ckpt", default='check-0' ,

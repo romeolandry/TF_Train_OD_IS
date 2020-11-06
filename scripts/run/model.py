@@ -69,7 +69,7 @@ class Model:
     def build_detection_model(self):
 
         if not os.path.isfile (os.path.join(self.__path_to_model,'pipeline.config')):
-            raise("the model dont content configuration")
+            exit("the model don't content configuration")
         
         click.echo(click.style(f"\n Build model from checkpoint.... \n", bg='green', bold=True, fg='white'))
 
@@ -79,6 +79,7 @@ class Model:
         model_config = configs['model']
         self.__detection_model = model_builder.build(model_config=model_config, is_training=False)
 
+        end_time = time.time()
         # Restore checkpoint pre_trained_models/ssd_mobilenet_v1_fpn_640x640_coco17_tpu-8/checkpoint
         if not os.path.isdir(os.path.join(self.__path_to_model,'checkpoint/')):
             exit("there isn't checkpoint in to given driectory")

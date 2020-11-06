@@ -91,7 +91,7 @@ class Inefrence :
         """Detect objects in image."""
         image, shapes = self.__model.preprocess(image)
         prediction_dict = self.__model.predict(image, shapes)
-        detections = self._model.postprocess(prediction_dict, shapes)
+        detections = self.__model.postprocess(prediction_dict, shapes)
 
         return detections, prediction_dict, tf.reshape(shapes, [-1])
 
@@ -99,7 +99,7 @@ class Inefrence :
     def inference_from_wedcam_with_checkpoint(self):
 
         # build the model 
-        self.build_detection_model()
+        #self.build_detection_model()
 
         cap = cv2.VideoCapture(0)
 

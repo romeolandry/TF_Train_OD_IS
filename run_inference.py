@@ -17,7 +17,7 @@ from scripts.run.model  import Model
 parser = argparse.ArgumentParser(description="Inference model. saved model or converted model")
 
 
-parser.add_argument("--web_cam", default=False, action="store_true",
+parser.add_argument("--webcam", default=False, action="store_true",
     help=" Use web cam for inference")
 
 parser.add_argument("--path_to_images", default=PATH_IMAGES +'/test2017' ,
@@ -26,7 +26,7 @@ parser.add_argument("--path_to_images", default=PATH_IMAGES +'/test2017' ,
 parser.add_argument("--number_of_image", default= 1 ,
     help="how much images in to directory schould inference")
 
-parser.add_argument("-p","--path_to_model", required=True ,
+parser.add_argument("-m","--path_to_model", required=True ,
     help="the path to model directory or  keras model")
 
 parser.add_argument("--path_to_label", default=PATH_TO_LABELS_MAP ,
@@ -39,7 +39,7 @@ parser.add_argument("--checkpoint", default='ckpt-0',
 def main(args):
     model = Model(args.path_to_model,
                   args.checkpoint)
-    if args.web_cam:
+    if args.webcam:
         ## build model from checkpoint
         
         detection_model, model_name = model.build_detection_model()

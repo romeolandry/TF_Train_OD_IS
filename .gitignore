@@ -141,3 +141,5 @@ dmypy.json
 
 # not project directories
 /Evaluationsmodel
+# test_image folder
+/test_images

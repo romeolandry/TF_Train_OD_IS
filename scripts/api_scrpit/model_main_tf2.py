@@ -28,6 +28,9 @@ python model_main_tf2.py -- \
   --alsologtostderr
 """
 import os
+import sys
+
+sys.path.append(os.path.abspath(os.curdir))
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 from absl import flags
 import tensorflow.compat.v2 as tf
@@ -65,7 +68,7 @@ flags.DEFINE_integer(
     'MultiWorkerMirroredStrategy. When num_workers = 1 it uses '
     'MirroredStrategy.')
 flags.DEFINE_integer(
-    'checkpoint_every_n', 1000, 'Integer defining how often we checkpoint.')
+    'checkpoint_every_n', 30, 'Integer defining how often we checkpoint.')
 flags.DEFINE_boolean('record_summaries', True,
                      ('Whether or not to record summaries during'
                       ' training.'))

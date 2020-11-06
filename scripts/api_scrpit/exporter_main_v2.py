@@ -92,6 +92,9 @@ If side inputs are desired, the following arguments could be appended
    --side_input_names context_features,valid_context_size \
    --side_input_types tf.float32,tf.int32
 """
+import os
+import sys
+sys.path.append(os.path.abspath(os.curdir))
 from absl import app
 from absl import flags
 

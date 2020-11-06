@@ -87,6 +87,7 @@ class Evaluation:
         results = []
         total_image = 0
         batch_count = 0
+
         for images in load_img_from_folder(self.__path_to_images, bacth_size=self.__batch_size, mAP=True):
             # convert images to be a tensor
             batch_count = batch_count + 1
@@ -94,7 +95,6 @@ class Evaluation:
             for item in images:
                 input_tensort = tf.convert_to_tensor(item['np_image'])
                 input_tensort = input_tensort[tf.newaxis,...]
-
                 try:
                     start_time = time.time()
 
@@ -105,14 +105,11 @@ class Evaluation:
                     detections['num_detections'] = num_detections
                     # convert detection  classes to int
                     detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
-
                     end_time = time.time()
 
                     elapsed_time = np.append(elapsed_time, end_time - start_time)
-
                 except :
-                    continue
-                
+                    continue                
 
                 for boxe, classe, score in zip (detections['detection_boxes'],
                                                 detections['detection_classes'],
@@ -125,7 +122,13 @@ class Evaluation:
                                     'category_id': int(classe),
                                     'bbox':[x, y, w, h],
                                     'score': float(score)})
+                    print("detection")
+                    print(boxe)
+                    print("in results")
+                    print(f" x: {x}, y: {y}, w: {w}, h: {h}")
+                    break
                 total_image = len(images)
+            exit()
             print('average FPS pro batch: {:4.1f}ms'.format((elapsed_time[-len(images):].mean()) * self.__batch_size ))
 
             ## save predicted annotation
@@ -133,9 +136,13 @@ class Evaluation:
             print(f"save results in to json!")
             save_perfromance('prediction', json_daten=results, file_name= self.__model_name +'.json')
             results.clear()
-
+        totale_time = total_image * self.__batch_size / elapsed_time.sum()
+        print(f'total time {totale_time}')
         print('Throughput: {:.0f} images/s'.format(total_image / elapsed_time.sum()))
-        totall_time = total_image * self.__batch_size / elapsed_time.sum()
+
+
+    def metric_with_api():
+        pass
 
     def COCO_mAP_bbox(self):
         cocoGt = COCO(self.__path_to_annotations)

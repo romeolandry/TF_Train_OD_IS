@@ -34,7 +34,7 @@ sys.path.append(os.path.abspath(os.curdir))
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "3,4"
 
 from absl import flags
 import tensorflow.compat.v2 as tf
@@ -106,7 +106,8 @@ def main(unused_argv):
     elif FLAGS.num_workers > 1:
       strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
     else:
-      strategy = tf.distribute.MirroredStrategy(["GPU:0"])
+      #strategy = tf.distribute.MirroredStrategy(["GPU:3","GPU:4"])
+      strategy = tf.compat.v2.distribute.MirroredStrategy()
 
     with strategy.scope():
       model_lib_v2.train_loop(

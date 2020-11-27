@@ -5,7 +5,7 @@ import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "3,4"
+os.environ['CUDA_VISIBLE_DEVICES'] = "2,5"
 
 sys.path.append(os.path.abspath(os.curdir))
 
@@ -45,7 +45,7 @@ def make_preprocessing ():
 def make_train(model_name):
     """
     Execute the model_main_tf2.py provided by the Api to train an selected model.
-    the trained model will be save into model/ directory. this will create if not exist.
+    the trained model will be save into model/ directory. this will be created if not exist.
     """
     # check if dirctory exist
     model_url = LIST_MODEL_TO_DOWNLOAD[model_name] # get model url from

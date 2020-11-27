@@ -34,7 +34,7 @@ sys.path.append(os.path.abspath(os.curdir))
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "3,4"
+os.environ['CUDA_VISIBLE_DEVICES'] = "1,4"
 
 from absl import flags
 import tensorflow.compat.v2 as tf

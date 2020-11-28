@@ -14,7 +14,12 @@ parser.add_argument("--data_preprocessing", default=False, action="store_true",
     the TF-record of your data.")    
 
 parser.add_argument("-m","--model",choices=list(set(LIST_MODEL_TO_DOWNLOAD.keys())),
-    help="Choose which Model you wont to train or Evaluate")
+    help="Choose which Model you wont to train")
+
+parser.add_argument("--eval",choices=list(set(LIST_MODEL_TO_DOWNLOAD.keys())),
+    help="Choose which Model you wont to Evaluate. the model that is in train can also been choosed.")
+
+
 
 def main(args):
 
@@ -40,20 +45,26 @@ if __name__ == "__main__":
         if(success):
             click.echo(click.style(f"\n tf record created and saved in to {PATH_ANNOTATIONS} directory \n", bg='blue', bold=True, fg='white'))
     else:
-        assert args.model,f"You should select one modelS beetwen {LIST_MODEL_TO_DOWNLOAD.keys()}"
-        success = download_pre_trained_model(args.model)
-        if success == -1:
-            click.echo(click.style(f"\n the model {args.model} coudn\'t be downloaded. Please verify that the url is still valid \n", bg='red', bold=True, fg='white'))
-            exit()
-        if success == 0:
-            click.echo(click.style(f"\n Set configuration in to pipeline.config \n", bg='red', bold=True, fg='white'))
-            exit()
-        ## Train Model
-        click.echo(click.style(f"\n Proceed of Train of {args.model} \n", bg='green', bold=True, fg='white'))
-        train = make_train(args.model)
-        if train :
-            click.echo(click.style(f"\n Export  {args.model} \n", bg='green', bold=True, fg='white'))
-            ## do export
-            exported = make_export(args.model)
+        ## run evalution of the selected model
+        if(args.eval):
+            assert args.eval,f"You should select one models beetwen {LIST_MODEL_TO_DOWNLOAD.keys()}"
+            make_eval_on_train(args.eval)
+        else:
+            assert args.model,f"You should select one models beetwen {LIST_MODEL_TO_DOWNLOAD.keys()}"
+            success = download_pre_trained_model(args.model)
+            if success == -1:
+                click.echo(click.style(f"\n the model {args.model} coudn\'t be downloaded. Please verify that the url is still valid \n", bg='red', bold=True, fg='white'))
+                exit()
+            if success == 0:
+                click.echo(click.style(f"\n Set configuration in to pipeline.config \n", bg='red', bold=True, fg='white'))
+                exit()
+        
+            ## Train Model
+            click.echo(click.style(f"\n Proceed of Train of {args.model} \n", bg='green', bold=True, fg='white'))
+            train = make_train(args.model)
+            if train :
+                click.echo(click.style(f"\n Export  {args.model} \n", bg='green', bold=True, fg='white'))
+                ## do export
+                exported = make_export(args.model)
             
             

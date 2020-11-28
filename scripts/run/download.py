@@ -70,7 +70,7 @@ def Extrac_zip_file (path_to_zip,dir_to_save_into):
 def download_pre_trained_model (model_name):
     """
         This function check if the choosen model have already been downloaded.
-        when not the model will Downloaded and extracted: return 0
+        when not the model will been Downloaded and extracted: return 0
         when yes it return 1.
         when an error occur it return -1
     """

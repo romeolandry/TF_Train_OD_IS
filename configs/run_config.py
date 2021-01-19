@@ -16,18 +16,19 @@ SUFIX_EXPORT = "_saved"
 LIST_MODEL_TO_DOWNLOAD = {
     "ssd_resnet50_v1":"http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz",
     "ssd_mobilenetv2":"http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tar.gz",
-    "maskrcnn":"http://download.tensorflow.org/models/object_detection/tf2/20200711/mask_rcnn_inception_resnet_v2_1024x1024_coco17_gpu-8.tar.gz"
+    "maskrcnn":"http://download.tensorflow.org/models/object_detection/tf2/20200711/mask_rcnn_inception_resnet_v2_1024x1024_coco17_gpu-8.tar.gz",
+    "ssd_resnet152_v1":"http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet152_v1_fpn_1024x1024_coco17_tpu-8.tar.gz"
 }
 
 PATH_PRE_TRAINED_MODELS = "pre_trained_models"
 
 ## Train Configurations 
 
-NUM_TRAIN_STEP = 1000
+NUM_TRAIN_STEP = 10000
 EVAL_ON_TRAIN_DATA = False # only supported in distributed training
 SAMPLE_OF_N_EVAL = None
 SAMPLE_OF_N_EVAL_ON_TRAIN = None # used when Eval on train data is true
-CHECKPOINT_EVERY_N_STEP = 1000
+CHECKPOINT_EVERY_N_STEP = 100
 RECORD_SUMMARY = True
 
 # Evalution 

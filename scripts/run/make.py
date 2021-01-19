@@ -3,9 +3,9 @@ import os
 import subprocess
 import tensorflow as tf
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "3,4"
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+# os.environ['CUDA_VISIBLE_DEVICES'] = "2,4"
 
 sys.path.append(os.path.abspath(os.curdir))
 
@@ -42,9 +42,9 @@ def make_preprocessing ():
         pass
     return False
 
-def make_train(model_name):
+def make_eval_on_train(model_name):
     """
-    Execute the model_main_tf2.py provided by the Api to train an selected model.
+    Execute the model_main_tf2.py provided by the Api to Evaluate a selected model.
     the trained model will be save into model/ directory. this will create if not exist.
     """
     # check if dirctory exist
@@ -68,7 +68,9 @@ def make_train(model_name):
     
     command = 'python scripts/api_scrpit/model_main_tf2.py '
     arguments = '--model_dir='+ path_to_save_trained_model +' --pipeline_config_path='+ path_to_pipeline + \
-        ' --num_train_steps='+ str(NUM_TRAIN_STEP)
+        ' --num_train_steps='+ str(NUM_TRAIN_STEP) +' --checkpoint_dir=' + path_to_save_trained_model + \
+        ' --eval'
+
     try:
         subprocess.call(command + arguments, shell= True)
         return True
@@ -76,10 +78,10 @@ def make_train(model_name):
         print("Status : FAIL", exc.returncode, exc.output)
         return False
 
-def make_eval(model_name):
+def make_train(model_name):
     """
     Execute the model_main_tf2.py provided by the Api to train an selected model.
-    the trained model will be save into model/ directory. this will create if not exist.
+    the trained model will be save into model/ directory. this will be created if not exist.
     """
     # check if dirctory exist
     model_url = LIST_MODEL_TO_DOWNLOAD[model_name] # get model url from
@@ -102,8 +104,8 @@ def make_eval(model_name):
     
     command = 'python scripts/api_scrpit/model_main_tf2.py '
     arguments = '--model_dir='+ path_to_save_trained_model +' --pipeline_config_path='+ path_to_pipeline + \
-        ' --num_train_steps='+ str(NUM_TRAIN_STEP) +' --checkpoint_dir=' + path_to_save_trained_model
-
+        ' --num_train_steps='+ str(NUM_TRAIN_STEP) + ' --checkpoint_every_n='+ str(CHECKPOINT_EVERY_N_STEP) + \
+        ' --train'
     try:
         subprocess.call(command + arguments, shell= True)
         return True
@@ -138,7 +140,7 @@ def make_export(model_name):
             os.mkdir(PATH_TO_EXPORT_DIR)
         os.mkdir(os.path.join(PATH_TO_EXPORT_DIR,new_file_name))
     
-    output_dir = os.path.join(PATH_TRAINED_MODELS,new_file_name)
+    output_dir = os.path.join(PATH_TO_EXPORT_DIR,new_file_name)
     command = 'python scripts/api_scrpit/exporter_main_v2.py '
     arguments ='--input_type '+ INPUT_TYPE[0] + ' --pipeline_config_path=' + path_to_pipeline + ' --trained_checkpoint_dir=' \
         + trained_checkpoint_dir + ' --output_directory=' +  output_dir

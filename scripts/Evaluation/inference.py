@@ -135,3 +135,56 @@ class Inefrence :
         
         cap.release()
         cv2.destroyAllWindows()
+
+    def inference_from_wedcam_with_checkpoint2(self):
+    
+        # build the model 
+        #self.build_detection_model()
+
+        cap = cv2.VideoCapture(0)
+
+        while True:
+            # Read frame from camera
+            ret, image_np = cap.read()
+            input_tensor = tf.convert_to_tensor(image_np)
+            input_tensor = input_tensor[tf.newaxis, ...]
+            # expand image to have shape :[1, None, None,3]
+            #image_np_expanded = np.expand_dims(image_np, axis=0)
+
+            #input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0),dtype=tf.float32)
+
+
+            #detections, predictions_dict, shapes = self.detect_fn(input_tensor)
+
+            detections = self.__model(input_tensor)
+
+            num_detections = int(detections.pop('num_detections'))
+            detections = {key: value[0, :num_detections].numpy()
+                          for key, value in detections.items()}
+
+            detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+            
+            detections['num_detections'] = num_detections
+
+            label_id_offset = 1
+            image_np_with_detections = image_np.copy()
+
+            viz_utils.visualize_boxes_and_labels_on_image_array(image_np_with_detections,
+                                                                detections['detection_boxes'][0],
+                                                                detections['detection_classes'][0],
+                                                                detections['detection_scores'][0],
+                                                                self.__category_index,
+                                                                use_normalized_coordinates=True,
+                                                                max_boxes_to_draw=200,
+                                                                min_score_thresh=.30,
+                                                                agnostic_mode=False)
+
+
+            # Display output
+            cv2.imshow('object detection', cv2.resize(image_np_with_detections, (800, 600)))
+
+            if cv2.waitKey(25) & 0xFF == ord('q'):
+                break
+        
+        cap.release()
+        cv2.destroyAllWindows()

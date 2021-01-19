@@ -11,7 +11,7 @@ import tensorflow as tf
 from tensorflow import keras
 from pathlib import Path
 from object_detection.utils import config_util
-from object_detection.builders import model_builder
+#from object_detection.builders import model_builder
 from configs.run_config import *
 
 # Enable GPU dynamic memory allocation

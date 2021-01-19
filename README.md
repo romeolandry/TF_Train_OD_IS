@@ -44,47 +44,125 @@ you should see
     [       OK ] ModelBuilderTF2Test.test_unknown_ssd_feature_extractor
     ----------------------------------------------------------------------
     Ran 20 tests in 68.510s
-
+    
     OK (skipped=1)
 
 ## install requirement from this repository
 
-    pip install -r requirement.txt
+```shell
+$ pip install -r requirement.txt
+```
 
-## Download and Preprocess data
+## Download prepare data and Model
+### Coco Dataset 
+
 - create TF-record file:
-    
-    If you train on COCO and you have alredy download the dataset, make you create the directory `annotations` and `images` as subdirectory
+  
+    If you won to train on COCO and you have already download the dataset, make sure you create the directory `annotations` and `images` as subdirectory and create and symbolic link to your coco directory.
 
-        Project_dir/
-        ├─ ...
-        ├─ annotations/
-        │  └─ .json
-        │  └─ record 
-        ├─ images/
-        |   └─train[years]
-        |   └─test[years]
-        |   └─val[years]
-        ├─..
-        └─ ...
+    ```shell
+    # move into Prodect dir
+    $ cd Projct_dir
+    # annotations
+    $ ln -s path to annotation directory ./annotations
+    # create inages dir
+    $ mkdir images
+    # train test val
+    $ ln -s path to test ./images/test2017
+    $ ln -s path to val ./images/val2017
+    $ ln -s path to train ./images/train2017
+    ```
     
-    Run the following command to generate record file. If project doesn't content images and annotation, the coco dataset will be automaticly downloaded and unpack.
-
-        python run.py --data_preprocessing
+Run the following command to generate record file. If project doesn't content images and annotations directories, its will ask  if you wont to download  the coco dataset and unpack it.  say yes to continue with the download(it could take time) or no tparser.add_argument("--checkpoint", default='ckpt-0',
+        help= "run Inference from checkpoint. require if the web cam option is true" )o abort and create the data directory manually.
     
-
+```shell
+  $ python run.py --data_preprocessing
+  ```
+  
 - provide an label-Map file `.pbtxt`: 
 the directory Label_map content label-map for coco dataset
 
+### Model
+
+The `run_config.py` content a dictionary of models and her URL to automatically downloaded the model and unpack it.  run the following command to download a model and unpack it.
+
+```shell
+$ python run.py -m [model_name]
+```
+
+model_name could be ,, ***ssd_resnet152_v1***. in
+
+- **`ssd_resnet50_v1`**: for ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz
+- **`ssd_mobilenetv2`**: for ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tar.gz
+- **`maskrcnn`**and: for mask_rcnn_inception_resnet_v2_1024x1024_coco17_gpu-8.tar.gz
+- ***ssd_resnet152_v1***: for ssd_resnet152_v1_fpn_1024x1024_coco17_tpu-8.tar.gz
+
+**Note:** Training and test now only support **`ssd_resnet50_v1`**.
+
+After the model have been downloaded, open the newly created directory `pre_trained_models`.
+
+- move into the `model_dir/saved_mdel` and open `pipeline.config` file.
+
+- set the model checkpoint path  `fine_tune_checkpoint` into the section `train_config`.
+
+  `pre_trained_models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/checkpoint/ckpt-0` . `fine_tune_checkpoint_type` give *detection* instead of *classification*
+
+- In to  `train_input_reader` set the path for `tf_record_input_reader` with the generate train-record tf-record `annotations/coco_train.record-?????-of-00100` and the path of `label_map_path` e.g `Label_map/mscoco_complete_label_map.pbtxt`
+
+- in to `eval_input_reader` set the path for `tf_record_input_reader`  e.g `annotations/coco_val.record-?????-of-00100` and the`label_map_path` .
+
+After that the model are ready for the training or the inference. The Project directory structure look like.
+
+```
+Project_dir/
+├─ ...
+├─ annotations/
+│  └─ .json
+│  └─ .record 
+├─ images/
+|   └─train[years]
+|   └─test[years]
+|   └─val[years]
+├─ ...
+|
+├─pre_trained_models
+|	└─model_name
+|		└checkpoint
+|		└─ saved_model
+|		└─pipeline.config
+├─..
+└─ ...
+```
+
+
+
 ## Train
 
-### Download the model and config pipeline
-- set the model checkpoint path  `fine_tune_checkpoint`
-- In to  train_input_reader set the path for `tf_record_input_reader` with the generate train-record tf-record
-- in to eval_input_reader set the path for `tf_record_input_reader` for eval_input: give the path to test record. the model will evaluate durign training.
+if the data configuration and model configuration was well done, the following command will launch the train phase
 
-Or run the following command to download and unpack the [available pre-trained]() model
+```shell
+$ python run.py -m ssd_resnet50_v1
+```
 
-    python run.py -m [model_name]
+At the end of the train, the train model will be saved into a new directory `model` and  will also be exported as a definition graph into `exported_model` in case you won to continue train the same model.
 
-if the given model have already be downloaded, the training and evaluation will start, else it will be downlaoded.
+## Evaluation
+
+## Inference
+
+The file `run_inference` will be use to apply the model on saved images or from web-cam(this module don't work jet).
+
+- `--webcam ` if you won to use web-cam module 
+- `-p or path_to_images` to set the directory contenting images.
+-  `-i or --nb_img` to set the number of image you won to inference into th given directory.
+- `-m or --model` to set the path to the model directory. path to `saved_model`directory.
+- `-l or --label` set the path to label.
+
+To run inference on images.
+
+```shell
+$ python run_inference.py -i 5  -m pre_trained_models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/saved_model/
+```
+
+It will create a directory named `images_inferenced` to save inference.

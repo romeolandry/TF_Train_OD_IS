@@ -83,7 +83,7 @@ def make_train(model_name):
     Execute the model_main_tf2.py provided by the Api to train an selected model.
     the trained model will be save into model/ directory. this will be created if not exist.
     """
-    # check if dirctory exist
+    # check if directory exist
     model_url = LIST_MODEL_TO_DOWNLOAD[model_name] # get model url from
     file_name = (model_url.split("/")[-1]).split(".")[0] # file name from url
     file_name = file_name.split('.')[0] # get file name without extension
@@ -125,7 +125,7 @@ def make_export(model_name):
 
     file_name_trained = PREFIX_MODEL_NAME + file_name
 
-    new_file_name = PREFIX_MODEL_NAME + file_name + SUFIX_EXPORT # add prefixe
+    new_file_name = PREFIX_MODEL_NAME + file_name + SUFFIX_EXPORT # add prefixe
     
     if not os.path.exists(os.path.join(PATH_TRAINED_MODELS,file_name_trained)):
         return False

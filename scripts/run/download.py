@@ -41,7 +41,7 @@ def save_zip_from_url(url, save_dir):
     except expression as identifier:
         pass
 
-def Extrac_zip_file (path_to_zip,dir_to_save_into):
+def Extract_zip_file (path_to_zip,dir_to_save_into):
     """
     Extract zip conten and change the structure of directory to match our required structure.
     """
@@ -69,7 +69,7 @@ def Extrac_zip_file (path_to_zip,dir_to_save_into):
 
 def download_pre_trained_model (model_name):
     """
-        This function check if the choosen model have already been downloaded.
+        This function check if the choose model have already been downloaded.
         when not the model will been Downloaded and extracted: return 0
         when yes it return 1.
         when an error occur it return -1
@@ -105,7 +105,7 @@ def download_pre_trained_model (model_name):
 
 def download_coco():
     """
-        this code will download coco dataset requiered image Train test val and annotation from 2017.
+        this code will download coco dataset required image Train test val and annotation from 2017.
         - http://images.cocodataset.org/zips/train2017.zip  
         - http://images.cocodataset.org/zips/val2017.zip
         - http://images.cocodataset.org/annotations/annotations_trainval2017.zip
@@ -137,7 +137,7 @@ def download_coco():
         click.echo(f'{ann} will be extracted and the zip-file will be deleted')
 
         # Extract zip to annotation directory
-        Extrac_zip_file(zip_filename_location,cfg.PATH_ANNOTATIONS)
+       Extract_zip_filee(zip_filename_location,cfg.PATH_ANNOTATIONS)
 
     click.echo(click.style(f"\n DOWNLOAD IMAGES \n", bg='green', bold=True, fg='white'))
     for dataset in img_to_download:
@@ -153,6 +153,6 @@ def download_coco():
         click.echo(f'{dataset} will be extracted and the zip-File will be deleted')
 
         # set complet Path to save images
-        Extrac_zip_file(zip_filename_location,cfg.PATH_IMAGES)
+       Extract_zip_filee(zip_filename_location,cfg.PATH_IMAGES)
 
     click.echo(click.style(f'\n Download and extraction termined successfull {dataset} ...\n',  bg='green', bold=True, fg='white'))

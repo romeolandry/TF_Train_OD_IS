@@ -17,7 +17,7 @@ parser.add_argument("-m","--model",choices=list(set(LIST_MODEL_TO_DOWNLOAD.keys(
     help="Choose which Model you wont to train")
 
 parser.add_argument("--eval",choices=list(set(LIST_MODEL_TO_DOWNLOAD.keys())),
-    help="Choose which Model you wont to Evaluate. the model that is in train can also been choosed.")
+    help="Choose which Model you wont to Evaluate. the model that is in train can also be choose.")
 
 
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     if(args.data_preprocessing):
         click.echo(click.style(f"\n COCO DataSet 2017 will be preprocessed \n", bg='green', bold=True, fg='white'))
         if not (os.path.exists(cfg.PATH_ANNOTATIONS) or os.path.exists(cfg.PATH_IMAGES)):
-            click.echo('The directory image/annotations doesn\'t exist. If you still have downloaded images/ and annotations please type n to skip and make shure you configure directories correctly: [yn] ', nl=False,)
+            click.echo('The directory image/annotations doesn\'t exist. If you still have downloaded images/ and annotations please type n to skip and make sure you configure directories correctly: [yn] ', nl=False,)
             c = click.getchar()
             click.echo()
             resp = str.capitalize(c)
@@ -38,14 +38,14 @@ if __name__ == "__main__":
                 # Donwload Coco Dataset
                 download_coco()
             else:
-                raise("set directoy for data")
+                raise("set directory for data")
         # Do preprocessing
         click.echo(click.style(f"\n Create of tf record \n", bg='blue', bold=True, fg='white'))
         success = make_preprocessing()
         if(success):
             click.echo(click.style(f"\n tf record created and saved in to {PATH_ANNOTATIONS} directory \n", bg='blue', bold=True, fg='white'))
     else:
-        ## run evalution of the selected model
+        ## run evaluation of the selected model
         if(args.eval):
             assert args.eval,f"You should select one models beetwen {LIST_MODEL_TO_DOWNLOAD.keys()}"
             make_eval_on_train(args.eval)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
             assert args.model,f"You should select one models beetwen {LIST_MODEL_TO_DOWNLOAD.keys()}"
             success = download_pre_trained_model(args.model)
             if success == -1:
-                click.echo(click.style(f"\n the model {args.model} coudn\'t be downloaded. Please verify that the url is still valid \n", bg='red', bold=True, fg='white'))
+                click.echo(click.style(f"\n the model {args.model} couldn't be downloaded. Please verify that the url is still valid \n", bg='red', bold=True, fg='white'))
                 exit()
             if success == 0:
                 click.echo(click.style(f"\n Set configuration in to pipeline.config \n", bg='red', bold=True, fg='white'))

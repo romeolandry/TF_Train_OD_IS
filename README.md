@@ -73,13 +73,14 @@ $ pip install -r requirement.txt
     $ ln -s path to train ./images/train2017
     ```
     
+
 Run the following command to generate record file. If project doesn't content images and annotations directories, its will ask  if you wont to download  the coco dataset and unpack it.  say yes to continue with the download(it could take time) or no tparser.add_argument("--checkpoint", default='ckpt-0',
         help= "run Inference from checkpoint. require if the web cam option is true" )o abort and create the data directory manually.
     
 ```shell
   $ python run.py --data_preprocessing
-  ```
-  
+```
+
 - provide an label-Map file `.pbtxt`: 
 the directory Label_map content label-map for coco dataset
 
@@ -165,4 +166,4 @@ To run inference on images.
 $ python run_inference.py -i 5  -m pre_trained_models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/saved_model/
 ```
 
-It will create a directory named `images_inferenced` to save inference.
+It will create a directory named `images_inferences` to save inference.

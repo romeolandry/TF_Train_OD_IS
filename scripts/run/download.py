@@ -137,7 +137,7 @@ def download_coco():
         click.echo(f'{ann} will be extracted and the zip-file will be deleted')
 
         # Extract zip to annotation directory
-       Extract_zip_filee(zip_filename_location,cfg.PATH_ANNOTATIONS)
+        Extract_zip_file(zip_filename_location,cfg.PATH_ANNOTATIONS)
 
     click.echo(click.style(f"\n DOWNLOAD IMAGES \n", bg='green', bold=True, fg='white'))
     for dataset in img_to_download:
@@ -153,6 +153,6 @@ def download_coco():
         click.echo(f'{dataset} will be extracted and the zip-File will be deleted')
 
         # set complet Path to save images
-       Extract_zip_filee(zip_filename_location,cfg.PATH_IMAGES)
+        Extract_zip_file(zip_filename_location,cfg.PATH_IMAGES)
 
     click.echo(click.style(f'\n Download and extraction termined successfull {dataset} ...\n',  bg='green', bold=True, fg='white'))

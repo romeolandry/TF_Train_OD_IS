@@ -8,19 +8,23 @@
 
 Clone [tensorflow api](https://github.com/tensorflow/models)
 
-    cd Tensorflow/models/rearch/
-    ## Protobuf insatllation
-    protoc object_detection/protos/*.proto --python_out=.
-    ## cocoApi
-    pip install pycocotools
-    ## 
-    cp object_detection/packages/tf2/setup.py .
-    python -m pip install .
+```shell
+$ cd Tensorflow/models/research/
+## Protobuf installation
+$ protoc object_detection/protos/*.proto --python_out=.
+## cocoApi
+$ pip install pycocotools
+## 
+$ cp object_detection/packages/tf2/setup.py .
+$ python -m pip install .
+```
 
 Test installation
 
-    # From within TensorFlow/models/research/
-    python object_detection/builders/model_builder_tf2_test.py
+```shell
+# From within TensorFlow/models/research/
+$ python object_detection/builders/model_builder_tf2_test.py
+```
 
 you should see
 
@@ -61,11 +65,11 @@ $ pip install -r requirement.txt
     If you won to train on COCO and you have already download the dataset, make sure you create the directory `annotations` and `images` as subdirectory and create and symbolic link to your coco directory.
 
     ```shell
-    # move into Prodect dir
-    $ cd Projct_dir
+    # move into Project dir
+    $ cd Project_dir
     # annotations
     $ ln -s path to annotation directory ./annotations
-    # create inages dir
+    # create images dir
     $ mkdir images
     # train test val
     $ ln -s path to test ./images/test2017
@@ -74,7 +78,7 @@ $ pip install -r requirement.txt
     ```
     
 
-Run the following command to generate record file. If project doesn't content images and annotations directories, its will ask  if you wont to download  the coco dataset and unpack it.  say yes to continue with the download(it could take time) or no tparser.add_argument("--checkpoint", default='ckpt-0',
+Run the following command to generate record file. If project doesn't content images and annotations directories, its will ask  if you wont to download  the coco dataset and unpack it.  say yes to continue with the download(it could take time) or no parser.add_argument("--checkpoint", default='ckpt-0',
         help= "run Inference from checkpoint. require if the web cam option is true" )o abort and create the data directory manually.
     
 ```shell
@@ -95,9 +99,7 @@ $ python run.py -m [model_name]
 model_name could be ,, ***ssd_resnet152_v1***. in
 
 - **`ssd_resnet50_v1`**: for ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz
-- **`ssd_mobilenetv2`**: for ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tar.gz
 - **`maskrcnn`**and: for mask_rcnn_inception_resnet_v2_1024x1024_coco17_gpu-8.tar.gz
-- ***ssd_resnet152_v1***: for ssd_resnet152_v1_fpn_1024x1024_coco17_tpu-8.tar.gz
 
 **Note:** Training and test now only support **`ssd_resnet50_v1`**.
 
@@ -152,18 +154,26 @@ At the end of the train, the train model will be saved into a new directory `mod
 
 ## Inference
 
-The file `run_inference` will be use to apply the model on saved images or from web-cam(this module don't work jet).
+The file `run_inference` will be use to apply the model(pre-trained and exported) on saved images or from web-cam.
 
 - `--webcam ` if you won to use web-cam module 
-- `-p or path_to_images` to set the directory contenting images.
+- `-p or path_to_images` to set the directory contenting images the default directory  is the `test2017`.
+- `-t or --type` to choose between an SSD-Resnet50-v1(ssd) and MASK-RCNN(ssd)
+- `-s or --size` Input size of the model.
 -  `-i or --nb_img` to set the number of image you won to inference into th given directory.
-- `-m or --model` to set the path to the model directory. path to `saved_model`directory.
+- `-m or --model` to set the path to the model directory. in case of inference on image path to `saved_model`directory else path to model.
 - `-l or --label` set the path to label.
 
 To run inference on images.
 
 ```shell
-$ python run_inference.py -i 5  -m pre_trained_models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/saved_model/
+$ python run_inference.py -i 3 -s 640 -t mask -m path_to_saved_model_dir
 ```
 
 It will create a directory named `images_inferences` to save inference.
+
+To inference using web-cam run :
+
+```shell
+$ python run_inference.py --webcam  -t mask -m path_to_model_name
+```

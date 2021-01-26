@@ -3,6 +3,8 @@ import os
 import subprocess
 import tensorflow as tf
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 # os.environ['CUDA_VISIBLE_DEVICES'] = "2,4"
@@ -118,7 +120,7 @@ def make_export(model_name):
     Execute the model_main_tf2.py provided by the Api to train an selected model.
     the trained model will be save into model/ directory. this will create if not exist.
     """
-    # check if dirctory exist
+    # check if directory exist
     model_url = LIST_MODEL_TO_DOWNLOAD[model_name] # get model url from
     file_name = (model_url.split("/")[-1]).split(".")[0] # file name from url
     file_name = file_name.split('.')[0] # get file name without extension

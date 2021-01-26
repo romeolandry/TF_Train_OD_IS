@@ -1,7 +1,11 @@
 """TensorFlow provide an list of pre-trained Model available on 
 https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
-for this project we choose "SSD MobileNet V1 FPN 640x640" for Object detection and "Mask R-CNN Inception ResNet V2 1024x1024"
+for this project we choose "SSD RESNET V1 FPN 640x640" for Object detection and "Mask R-CNN Inception ResNet V2 1024x1024"
 """
+
+## Tensorflow API 
+
+Path_to_objection_dir = "/home/kamgo/Dokumente/Projects/Train_tensorflow_OD_API/models/research/object_detection"
 
 ## DataSet
 COCO_YEARS= 2017

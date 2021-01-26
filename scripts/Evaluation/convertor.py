@@ -3,6 +3,7 @@ import sys
 import json
 
 import tensorflow as tf
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from tensorflow import keras
 from tensorflow.python.compiler.tensorrt import trt_convert as trt
 

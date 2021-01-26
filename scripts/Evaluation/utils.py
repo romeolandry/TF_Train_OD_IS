@@ -21,11 +21,11 @@ def load_img_from_folder(path_folder, anzahl = None, mAP = False, bacth_size= 32
         load image from file into numpy array.
 
         put each image into an numpy array  to feed tensorflow.
-        the numpy shape have the following struckture.
+        the numpy shape have the following structure.
         (height, width, channels) channels=3
 
         Args:
-        path to image folder
+        path to one image a folder conting images
         number of image to load. default is None all the image will been loaded
 
         Returns:
@@ -36,8 +36,8 @@ def load_img_from_folder(path_folder, anzahl = None, mAP = False, bacth_size= 32
     count = 0
     total_file = len(glob.glob1(path_folder + '/','*.jpg'))
     total_loaded = 0
-    if anzahl is not None:
-        total_file = anzahl
+    if number_of_images is not None:
+        total_file = number_of_images
     
     if os.path.isdir(path_folder):
         for filename in glob.glob(path_folder + '/*.jpg'):
@@ -53,7 +53,7 @@ def load_img_from_folder(path_folder, anzahl = None, mAP = False, bacth_size= 32
             if (count == total_file):
                 yield img_list
             
-            if (count % bacth_size == 0):
+            if (count % batch_size == 0):
                 yield img_list
     else:
         img = Image.open(path_folder)
@@ -66,7 +66,7 @@ def load_img_from_folder_for_infer(path_folder, anzahl = None,image_size = [640,
         load image from file into numpy array.
 
         put each image into an numpy array  to feed tensorflow.
-        the numpy shape have the following struckture.
+        the numpy shape have the following structure.
         (height, width, channels) channels=3
 
         Args:
@@ -141,7 +141,7 @@ def batch_input (batch_size=8, input_size=[299,299,3], path_to_test_img_dir=''):
         batched_input = tf.constant(batched_input) 
         return batched_input
 
-def save_perfromance(status_to_save, json_daten,file_name=None):
+def save_performance(status_to_save, json_data,file_name=None):
     if not os.path.isdir('performances'):
         os.mkdir('performances')
     
@@ -149,14 +149,14 @@ def save_perfromance(status_to_save, json_daten,file_name=None):
 
         if not os.path.isfile(PATH_PERFORMANCE_CONVERT):
             with open (PATH_PERFORMANCE_CONVERT,'w+') as json_file:
-                json.dump(json_daten,json_file)
+                json.dump(json_data,json_file)
         else:
             with open (PATH_PERFORMANCE_CONVERT,'r+') as js_file:
                 data = json.load(js_file)
-                data.update(json_daten)
+                data.update(json_data)
                 js_file.seek(0)
                 json.dump(data,js_file)
 
     if(status_to_save=='prediction'):
         with open (os.path.join(PATH_PERFORMANCE_INFER,file_name),'w+') as json_file:
-            json_file.write(json.dumps(json_daten, indent=4))
+            json_file.write(json.dumps(json_data, indent=4))

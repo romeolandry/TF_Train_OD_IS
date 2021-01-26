@@ -146,8 +146,8 @@ class Inference :
             plt.savefig(os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_" + str(i)))
             i +=1
         print('Done')
-
-
+    
+    
     @tf.function
     def detect_fn(self,image):
 

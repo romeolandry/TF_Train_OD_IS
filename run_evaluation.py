@@ -18,10 +18,10 @@ parser = argparse.ArgumentParser(description="Evaluate an saved model")
 
 
 parser.add_argument("-m","--model", required = True,
-    help=" Use web cam for inference")
+    help="Path to model directory")
 
 parser.add_argument("-b","--batch_size", default=32,
-    help=" Use web cam for inference")
+    help=" number of image pro batch")
 
 parser.add_argument("--path_to_images", default=PATH_IMAGES +'/val2017' ,
     help="the path to directory of images or image path")
@@ -30,7 +30,7 @@ parser.add_argument("--path_to_ann", default=PATH_ANNOTATIONS +'/instances_val20
     help="the path to annotation file")
 
 parser.add_argument("--ckpt", default='check-0' ,
-    help="the path to checkpoint. if the evaluation will be proceed throught checkpoint")
+    help="the path to checkpoint. if the evaluation will be proceed through checkpoint")
 
 
 if __name__ == "__main__":

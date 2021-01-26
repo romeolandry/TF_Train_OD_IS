@@ -13,24 +13,24 @@ from tensorflow.keras.applications.inception_v3 import preprocess_input, decode_
 sys.path.append(os.path.abspath(os.curdir))
 
 from configs.run_config import *
-from scripts.api_scrpit import *
+#from scripts.api_scrpit import *
 
+"""
+    load image from file into numpy array.
 
-def load_img_from_folder(path_folder, anzahl = None, mAP = False, bacth_size= 32,image_size = [640,640]):
-    """
-        load image from file into numpy array.
+    put each image into an numpy array  to feed tensorflow.
+    the numpy shape have the following structure.
+    (height, width, channels) channels=3
 
-        put each image into an numpy array  to feed tensorflow.
-        the numpy shape have the following structure.
-        (height, width, channels) channels=3
-
-        Args:
-        path to one image a folder conting images
+    Args:
+        path to one image or a folder conting images
         number of image to load. default is None all the image will been loaded
 
-        Returns:
-           list of  uint8 numpy array with shape (img_height, img_width, 3)        
-    """
+    Returns:
+        list of  uint8 numpy array with shape (img_height, img_width, 3)        
+"""
+def load_img_from_folder(path_folder, number_of_images = None, mAP = False, batch_size= 32,image_size = [640,640]):
+    
     img_list = []
     batch_number = 0
     count = 0
@@ -61,7 +61,6 @@ def load_img_from_folder(path_folder, anzahl = None, mAP = False, bacth_size= 32
         return img_list
 
 
-def load_img_from_folder_for_infer(path_folder, anzahl = None,image_size = [640,640]):
     """
         load image from file into numpy array.
 
@@ -76,6 +75,8 @@ def load_img_from_folder_for_infer(path_folder, anzahl = None,image_size = [640,
         Returns:
            list of  uint8 numpy array with shape (img_height, img_width, 3)        
     """
+
+def load_img_from_folder_for_infer(path_folder, number_of_images = None,image_size = [640,640]):
     img_list = []
     count = 0
 
@@ -85,7 +86,7 @@ def load_img_from_folder_for_infer(path_folder, anzahl = None,image_size = [640,
             img_list.append(np.array(img))
 
             count +=1
-            if (anzahl is not None) and (count == anzahl):
+            if (number_of_images is not None) and (count == number_of_images):
                 break
         return img_list
     else:

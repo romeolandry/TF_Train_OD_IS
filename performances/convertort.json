@@ -1,9 +1,1 @@
-{
-    "keras_model_sign_rop_vgg_ohne_gen_1_TFTRT_F16": {
-        "ORIGINAL": "/home/kamgo-gpu/Dokumente/Projekts/Verkehrszeichenerkennung/jupyter/keras_model_sign_rop_vgg_ohne_gen_1.h5",
-        "PRECISION_MODE": "fp16",
-        "MAX_WORSPACE_SIZE_BITES": 8000000000,
-        "CONVERSION_TYPE": "TensorFlow-TensorRT",
-        "CONVERTED_MODEL": "models_converted/keras_model_sign_rop_vgg_ohne_gen_1_TFTRT_F16"
-    }
-}
+{"keras_model_sign_rop_vgg_ohne_gen_1_TFTRT_F16": {"ORIGINAL": "/home/kamgo-gpu/Dokumente/Projekts/Verkehrszeichenerkennung/jupyter/keras_model_sign_rop_vgg_ohne_gen_1.h5", "PRECISION_MODE": "fp16", "MAX_WORSPACE_SIZE_BITES": 8000000000, "CONVERSION_TYPE": "TensorFlow-TensorRT", "CONVERTED_MODEL": "models_converted/keras_model_sign_rop_vgg_ohne_gen_1_TFTRT_F16"}, "ssd_resnet50_v1_fpn_640x640_coco17_tpu-8_TFTRT_F32": {"ORIGINAL": "/home/kamgo/Dokumente/Projects/Train_tensorflow_OD_API/workspace/TF_Train_OD_IS/pre_trained_models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/saved_model", "PRECISION_MODE": "FP32", "MAX_WORKSPACE_SIZE_BITES": 8000000000, "CONVERSION_TYPE": "TensorFlow-TensorRT", "CONVERTED_MODEL": "models_converted/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8_TFTRT_F32"}, "ssd_resnet50_v1_fpn_640x640_coco17_tpu-8_TFTRT_INT8": {"ORIGINAL": "/home/kamgo/Dokumente/Projects/Train_tensorflow_OD_API/workspace/TF_Train_OD_IS/pre_trained_models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8/saved_model", "PRECISION_MODE": "int8", "MAX_WORKSPACE_SIZE_BITES": 8000000000, "CONVERSION_TYPE": "TensorFlow-TensorRT", "CONVERTED_MODEL": "models_converted/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8_TFTRT_INT8"}}

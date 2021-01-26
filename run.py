@@ -28,22 +28,22 @@ def main(args):
 if __name__ == "__main__":
     args = parser.parse_args()
     if(args.data_preprocessing):
-        click.echo(click.style(f"\n COCO DataSet 2017 will be preprocessed \n", bg='green', bold=True, fg='white'))
+        click.echo(click.style(f"\n COCO DataSet 2017 will be preprocessed \n", bold=True, fg='green'))
         if not (os.path.exists(cfg.PATH_ANNOTATIONS) or os.path.exists(cfg.PATH_IMAGES)):
             click.echo('The directory image/annotations doesn\'t exist. If you still have downloaded images/ and annotations please type n to skip and make sure you configure directories correctly: [yn] ', nl=False,)
             c = click.getchar()
             click.echo()
             resp = str.capitalize(c)
             if resp=='Y':
-                # Donwload Coco Dataset
+                # Download Coco Dataset
                 download_coco()
             else:
                 raise("set directory for data")
         # Do preprocessing
-        click.echo(click.style(f"\n Create of tf record \n", bg='blue', bold=True, fg='white'))
+        click.echo(click.style(f"\n Create of tf record \n", bold=True, fg='blue'))
         success = make_preprocessing()
         if(success):
-            click.echo(click.style(f"\n tf record created and saved in to {PATH_ANNOTATIONS} directory \n", bg='blue', bold=True, fg='white'))
+            click.echo(click.style(f"\n tf record created and saved in to {PATH_ANNOTATIONS} directory \n", bold=True, fg='blue'))
     else:
         ## run evaluation of the selected model
         if(args.eval):
@@ -56,14 +56,14 @@ if __name__ == "__main__":
                 click.echo(click.style(f"\n the model {args.model} couldn't be downloaded. Please verify that the url is still valid \n", bg='red', bold=True, fg='white'))
                 exit()
             if success == 0:
-                click.echo(click.style(f"\n Set configuration in to pipeline.config \n", bg='red', bold=True, fg='white'))
+                click.echo(click.style(f"\n Set configuration in to pipeline.config \n", bold=True, fg='red'))
                 exit()
         
             ## Train Model
-            click.echo(click.style(f"\n Proceed of Train of {args.model} \n", bg='green', bold=True, fg='white'))
+            click.echo(click.style(f"\n Proceed of Train of {args.model} \n", bold=True, fg='green'))
             train = make_train(args.model)
             if train :
-                click.echo(click.style(f"\n Export  {args.model} \n", bg='green', bold=True, fg='white'))
+                click.echo(click.style(f"\n Export  {args.model} \n", bold=True, fg='green'))
                 ## do export
                 exported = make_export(args.model)
             

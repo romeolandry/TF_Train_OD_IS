@@ -57,7 +57,18 @@ you should see
 $ pip install -r requirement.txt
 ```
 
+**Note:** Change the path to object_detection directory located inton `model/research/` 
+
+```
+# open run_configs 
+# change Path_to_objection_dir
+Path_to_objection_dir = absolut path to object_detection
+```
+
+
+
 ## Download prepare data and Model
+
 ### Coco Dataset 
 
 - create TF-record file:
@@ -78,9 +89,7 @@ $ pip install -r requirement.txt
     ```
     
 
-Run the following command to generate record file. If project doesn't content images and annotations directories, its will ask  if you wont to download  the coco dataset and unpack it.  say yes to continue with the download(it could take time) or no parser.add_argument("--checkpoint", default='ckpt-0',
-        help= "run Inference from checkpoint. require if the web cam option is true" )o abort and create the data directory manually.
-    
+Run the following command to generate record file. If project doesn't content images and annotations directories, its will ask  if you wont to download  the coco dataset and unpack it.  say yes to continue with the download(it could take time) or no to abort and create the data directory manually.
 ```shell
   $ python run.py --data_preprocessing
 ```
@@ -96,7 +105,7 @@ The `run_config.py` content a dictionary of models and her URL to automatically 
 $ python run.py -m [model_name]
 ```
 
-model_name could be ,, ***ssd_resnet152_v1***. in
+model_name could be ,, ***ssd_resnet50_v1***. in
 
 - **`ssd_resnet50_v1`**: for ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz
 - **`maskrcnn`**and: for mask_rcnn_inception_resnet_v2_1024x1024_coco17_gpu-8.tar.gz

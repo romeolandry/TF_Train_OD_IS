@@ -135,7 +135,7 @@ dmypy.json
 /pre_trained_models
 /annotations
 /exported_models
-/models_converted
+/converted_models
 /tf_from_keras
 /images_inferences
 
@@ -143,3 +143,4 @@ dmypy.json
 /Evaluationsmodel
 # test_image folder
 /test_images
+/performances

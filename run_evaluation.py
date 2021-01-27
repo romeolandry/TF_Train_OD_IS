@@ -45,5 +45,5 @@ if __name__ == "__main__":
                       args.path_to_ann,
                       int(args.batch_size))
 
-    evaluate.generate_detection_results()
+    evaluate.generate_detection_results_mask()
     evaluate.COCO_mAP_bbox()

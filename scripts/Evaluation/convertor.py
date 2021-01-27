@@ -4,13 +4,12 @@ import json
 
 import tensorflow as tf
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+from configs.run_config import *
 from tensorflow import keras
 from tensorflow.python.compiler.tensorrt import trt_convert as trt
 
 from pathlib import Path
 import click
-
-from object_detection.exporter import 
 
 
 sys.path.append(os.path.abspath(os.curdir))
@@ -135,8 +134,8 @@ class Convertor:
         else:
             converter.convert()
         
-        click.echo(click.style(f"\n Saving {self.__model_name} \n", bg='green', bold=True, fg='white'))
+        click.echo(click.style(f"\n Saving {self.__model_name} \n", bold=True, fg='green'))
         converter.save(output_saved_model_dir = output_saved_model_dir)
-        click.echo(click.style(f"\n Complet \n", bg='green', bold=True, fg='white'))
+        click.echo(click.style(f"\n Complet \n", bold=True, fg='green'))
         
         return original_name,output_saved_model_dir

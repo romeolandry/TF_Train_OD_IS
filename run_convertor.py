@@ -19,9 +19,6 @@ parser.add_argument("-t","--type", choices=['tf-trt','tf-infer'],
 parser.add_argument("-p","--path", required=True,
     help="path to model to convert .h5 or tensorflow model directory (saved_model)")
 
-parser.add_argument("--output_model_dir", default=PATH_TO_CONVERTED_MODELS,
-    help="where the converted model will be saved by default the model.")
-
 parser.add_argument("--mode", default= PRECISION_MODE,
     help="precision mode if you won a tf-trt model")
 
@@ -52,7 +49,8 @@ def main(args):
             if resp=='N':
                 raise("changed input size image")
 
-        batched_input = batch_input(batch_size=args.batch_size, input_size=[args.input_size,args.input_size,3], path_to_test_img_dir='images/test2017')
+        size = int(args.input_size)
+        batched_input = batch_input(batch_size=args.batch_size, input_size=[size,size,3], path_to_test_img_dir='images/test2017')
 
         con = Convertor(args.path,args.mode,args.max_ws)
         original_path,saved_model_path = con.convert_to_TF_TRT_graph_and_save(calibration_data=batched_input)

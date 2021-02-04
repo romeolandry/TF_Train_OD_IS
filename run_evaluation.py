@@ -20,6 +20,11 @@ parser = argparse.ArgumentParser(description="Evaluate an saved model")
 parser.add_argument("-m","--model", required = True,
     help="Path to model directory")
 
+parser.add_argument("-t","--type",
+                    required = True,
+                    choices= ['ssd', 'mask'],
+                    help="choose beetwen ssd and mask")
+
 parser.add_argument("-b","--batch_size", default=32,
     help=" number of image pro batch")
 
@@ -44,6 +49,9 @@ if __name__ == "__main__":
                       model_name,
                       args.path_to_ann,
                       int(args.batch_size))
-
-    evaluate.generate_detection_results_mask()
+    
+     if args.type == 'ssd':
+        evaluate.generate_detection_results_ssd()
+    if args.type == 'mask':
+        evaluate.generate_detection_results_mask()
     evaluate.COCO_mAP_bbox()

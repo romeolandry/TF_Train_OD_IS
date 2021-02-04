@@ -21,7 +21,7 @@ from object_detection import *
     The path to cloned model/research(object_detection is set into run_config
 '''
 
-def make_preprocessing ():
+def make_preprocessing (type):
 
     # get create_coco_tf_record.py path
     create_coco_tf_record = os.path.join(Path_to_objection_dir,'dataset_tools/create_coco_tf_record.py')
@@ -37,10 +37,21 @@ def make_preprocessing ():
     Test_ann = os.path.join(PATH_ANNOTATIONS,'image_info_test-dev'+str(COCO_YEARS)+ '.json')
     Val_ann = os.path.join(PATH_ANNOTATIONS,'instances_val'+str(COCO_YEARS)+ '.json')
 
-    arguments = ' --logtostder --train_image_dir '+ Train_images +' --val_image_dir '\
-        + Val_img +' --test_image_dir '+ Test_Images + ' --train_annotations_file '+ Train_ann + \
-            ' --val_annotations_file ' + Val_ann + ' --testdev_annotations_file '+ Test_ann + \
-                ' --output_dir '+ os.path.join(PATH_ANNOTATIONS) 
+    # set output directory
+    output = os.path.join(PATH_ANNOTATIONS,type)
+    if not os.path.exists(output):
+        os.mkdir(output)
+    if type == "mask":
+        arguments = ' --logtostder include_masks --train_image_dir '+ Train_images +' --val_image_dir '\
+            + Val_img +' --test_image_dir '+ Test_Images + ' --train_annotations_file '+ Train_ann + \
+                ' --val_annotations_file ' + Val_ann + ' --testdev_annotations_file '+ Test_ann + \
+                    ' --output_dir '+ output
+    else:
+        arguments = ' --logtostder --train_image_dir '+ Train_images +' --val_image_dir '\
+            + Val_img +' --test_image_dir '+ Test_Images + ' --train_annotations_file '+ Train_ann + \
+                ' --val_annotations_file ' + Val_ann + ' --testdev_annotations_file '+ Test_ann + \
+                    ' --output_dir '+ output
+
 
     run_create_coco_record_script_file = command +  arguments
     try:

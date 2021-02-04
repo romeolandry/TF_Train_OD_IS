@@ -10,8 +10,11 @@ import click
 parser = argparse.ArgumentParser(description="Choose what you won beetwen [Data_preprocessing, Train, Evaluate]")
 
 parser.add_argument("--data_preprocessing", default=False, action="store_true",
-    help="If you already have coco Dataset downloaded and just to create\
-    the TF-record of your data.")    
+    help="If you already have coco Dataset downloaded and just won to create\
+    the TF-record of your data.")
+
+parser.add_argument("--mask", default=False, action="store_true",
+    help="Record for mask else bbox .")
 
 parser.add_argument("-m","--model",choices=list(set(LIST_MODEL_TO_DOWNLOAD.keys())),
     help="Choose which Model you wont to train")
@@ -41,7 +44,10 @@ if __name__ == "__main__":
                 raise("set directory for data")
         # Do preprocessing
         click.echo(click.style(f"\n Create of tf record \n", bold=True, fg='blue'))
-        success = make_preprocessing()
+        if args.mask:
+            success = make_preprocessing("mask")
+        else:
+            success = make_preprocessing("bbox")
         if(success):
             click.echo(click.style(f"\n tf record created and saved in to {PATH_ANNOTATIONS} directory \n", bold=True, fg='blue'))
     else:

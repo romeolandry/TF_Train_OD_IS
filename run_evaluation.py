@@ -49,8 +49,7 @@ if __name__ == "__main__":
                       model_name,
                       args.path_to_ann,
                       int(args.batch_size))
-    
-     if args.type == 'ssd':
+    if args.type == 'ssd':
         evaluate.generate_detection_results_ssd()
     if args.type == 'mask':
         evaluate.generate_detection_results_mask()

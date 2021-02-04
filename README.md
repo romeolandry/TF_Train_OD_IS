@@ -90,6 +90,9 @@ Path_to_objection_dir = absolut path to object_detection
     
 
 Run the following command to generate record file. If project doesn't content images and annotations directories, its will ask  if you wont to download  the coco dataset and unpack it.  say yes to continue with the download(it could take time) or no to abort and create the data directory manually.
+
+- add --mask to create record for mask. else only record for box will be generate.
+
 ```shell
   $ python run.py --data_preprocessing
 ```

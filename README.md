@@ -164,12 +164,24 @@ At the end of the train, the train model will be saved into a new directory `mod
 
 ## Evaluation
 
+Evaluate a saved model
+
+- `-m or --model` to set the path to the model directory. in case of inference on image path to `saved_model`directory else path to model.
+- `-t or --type` to choose between an `segm` and `bbox`
+
+- `-b` or `--batch_size` to number of to proceed at one time.
+- `-p or --path_to_images` to set the directory contenting images the default directory  is the `val2017`.
+
+```shell
+$ python run_evaluation.py  --model path_to_saved_model_dir  -t bbox --batch_size 100.
+```
+
 ## Inference
 
 The file `run_inference` will be use to apply the model(pre-trained and exported) on saved images or from web-cam.
 
 - `--webcam ` if you won to use web-cam module 
-- `-p or path_to_images` to set the directory contenting images the default directory  is the `test2017`.
+- `-p or --path_to_images` to set the directory contenting images the default directory  is the `test2017`.
 - `-t or --type` to choose between an SSD-Resnet50-v1(ssd) and MASK-RCNN(ssd)
 - `-s or --size` Input size of the model.
 -  `-i or --nb_img` to set the number of image you won to inference into th given directory.

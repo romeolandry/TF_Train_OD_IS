@@ -23,7 +23,7 @@ parser.add_argument("-m","--model", required = True,
 parser.add_argument("-t","--type",
                     required = True,
                     choices= ['bbox', 'segm'],
-                    help="choose beetwen ssd and mask")
+                    help="choose beetwen bbox and segm")
 
 parser.add_argument("-b","--batch_size", default=32,
     help=" number of image pro batch")
@@ -34,13 +34,9 @@ parser.add_argument("--path_to_images", default=PATH_IMAGES +'/val2017' ,
 parser.add_argument("--path_to_ann", default=PATH_ANNOTATIONS +'/instances_val2017.json' ,
     help="the path to annotation file")
 
-parser.add_argument("--ckpt", default='check-0' ,
-    help="the path to checkpoint. if the evaluation will be proceed through checkpoint")
-
-
 if __name__ == "__main__":
     args = parser.parse_args()
-    model = Model(args.model,args.ckpt)
+    model = Model(args.model)
                 
     detection_model, model_name = model.Load_model()
 

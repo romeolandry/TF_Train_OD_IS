@@ -30,7 +30,7 @@ class Evaluation:
                  model,
                  model_name,
                  path_to_annotations,
-                 batch_size=32):
+                 batch_size=32,):
         self.__path_to_images = path_to_images
         self.__model = model
         self.__model_name = model_name

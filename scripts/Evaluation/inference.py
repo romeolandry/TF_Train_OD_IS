@@ -79,7 +79,7 @@ class Inference :
             # detection_classes should be int64.
             detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
 
-            image_np_with_detections = image_np.copy()
+            image_np_with_detections = image_np.copy()                
 
             viz_utils.visualize_boxes_and_labels_on_image_array(image_np_with_detections,
                                                                 detections['detection_boxes'],

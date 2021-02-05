@@ -86,7 +86,7 @@ class Evaluation:
         total_image = 0
         batch_count = 0
 
-        for images in load_img_from_folder(self.__path_to_images, batch_size=self.__batch_size, mAP=True):
+        for images in load_img_from_folder(self.__path_to_images,number_of_images=5, batch_size=self.__batch_size, mAP=True):
             # convert images to be a tensor
             batch_count = batch_count + 1
             print(f"run evaluation for batch {batch_count} of {len(images)} images \t")
@@ -111,32 +111,31 @@ class Evaluation:
                     detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(detection_masks, detection_boxes,item['np_image'].shape[0], item['np_image'].shape[1])
                     detection_masks_reframed = tf.cast(detection_masks_reframed > 0.5,tf.uint8)
                     detections['detection_masks_reframed'] = detection_masks_reframed.numpy()
-                
 
                 elapsed_time = np.append(elapsed_time, end_time - start_time)              
 
                 for boxes, classes, score in zip (detections['detection_boxes'][0].numpy(),
                                                   (detections['detection_classes'][0].numpy() + label_id_offset).astype(int),
                                                   detections['detection_scores'][0].numpy()):
-                    x = float(boxes[0])
-                    y = float(boxes[1])
-                    w = float(boxes[2]- boxes[0] + 1)
-                    h = float(boxes[3]- boxes[1] + 1)
+                    height, width,_ = item['np_image'].shape
+                    x = float(boxes[0]*height)
+                    y = float(boxes[1]*width)
+                    w = float(boxes[2]*height)
+                    h = float(boxes[3]*width)
                     results.append({'image_id':item['imageId'],
                                     'category_id': int(classes),
                                     'bbox':[x, y, w, h],
                                     'score': float(score)})
                 total_image = len(images)
-            print('average FPS pro batch: {:4.1f}ms'.format((elapsed_time[-len(images):].mean()) * self.__batch_size ))
+            print('average time pro batch: {:4.1f} ms'.format((elapsed_time[-len(images):]/self.__batch_size) * 1000 ))
 
             ## save predicted annotation
             print(f"Total evaluate {len(images)} \t")
             print(f"save results in to json!")
             save_performance('prediction', json_data=results, file_name= self.__model_name +'.json')
             results.clear()
-        totale_time = total_image * self.__batch_size / elapsed_time.sum()
-        print(f'total time {totale_time}')
-        print('Throughput: {:.0f} images/s(FPS)'.format(total_image / elapsed_time.sum()))
+        print(f'total time {elapsed_time.sum()}')
+        print('After all Evaluation FPS {:4.1f} ms '.format(1000/(sum(elapsed_time)/len(elapsed_time)*1000)))
     
     """
         Run detection on each image an write result into Json file
@@ -147,7 +146,7 @@ class Evaluation:
         total_image = 0
         batch_count = 0
 
-        for images in load_img_from_folder(self.__path_to_images, batch_size=self.__batch_size, mAP=True):
+        for images in load_img_from_folder(self.__path_to_images,number_of_images=None, batch_size=self.__batch_size, mAP=True):
             # convert images to be a tensor
             batch_count = batch_count + 1
             print(f"run evaluation for batch {batch_count} of {len(images)} images \t")
@@ -173,33 +172,34 @@ class Evaluation:
                 for boxes, classes, score in zip (detections['detection_boxes'],
                                                 detections['detection_classes'],
                                                 detections['detection_scores']):
-                    x = float(boxes[0])
-                    y = float(boxes[1])
-                    w = float(boxes[2]- boxes[0] + 1)
-                    h = float(boxes[3]- boxes[1] + 1)
+                    height, width,_ = item['np_image'].shape
+                    x = float(boxes[0]*height)
+                    y = float(boxes[1]*width)
+                    w = float(boxes[2]*height)
+                    h = float(boxes[3]*width)
                     results.append({'image_id':item['imageId'],
                                     'category_id': int(classes),
-                                    'bbox':[x, y, w, h],
+                                    'bbox':[float(boxes[0]), float(boxes[1]), float(boxes[2]), float(boxes[3])],
                                     'score': float(score)})
                 total_image = len(images)
-            print('average FPS pro batch: {:4.1f}ms'.format((elapsed_time[-len(images):].mean()) * self.__batch_size ))
+                print('average time pro batch: {:4.1f} ms'.format((elapsed_time[-len(images):].mean()) * 1000 ))
 
-            ## save predicted annotation
+            ## save predicted annotation 
             print(f"Total evaluate {len(images)} \t")
             print(f"save results in to json!")
             save_performance('prediction', json_data=results, file_name= self.__model_name +'.json')
             results.clear()
-        totale_time = total_image * self.__batch_size / elapsed_time.sum()
-        print(f'total time {totale_time}')
-        print('Throughput: {:.0f} images/s(FPS)'.format(total_image / elapsed_time.sum()))
 
-    def COCO_mAP_bbox(self):
+        print(f'total time {elapsed_time.sum()}')
+        print('After all Evaluation FPS {:4.1f} ms '.format(1000/(sum(elapsed_time)/len(elapsed_time)*1000)))
+
+    def COCO_process_mAP(self,type):
         cocoGt = COCO(self.__path_to_annotations)
         cocoDt = cocoGt.loadRes(os.path.join(PATH_PERFORMANCE_INFER,self.__model_name + '.json'))
-
+        
         imgIds = sorted(cocoGt.getImgIds())
 
-        cocoEval = COCOeval(cocoGt, cocoDt, 'bbox')
+        cocoEval = COCOeval(cocoGt, cocoDt, type)
         
         cocoEval.params.imgIds = imgIds
 

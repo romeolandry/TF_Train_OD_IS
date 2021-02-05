@@ -51,10 +51,10 @@ def load_img_from_folder(path_folder, number_of_images = None, mAP = False, batc
                                  'np_image':np.array(img)})
             count +=1
             if (count == total_file):
+                return img_list
+            else:
                 yield img_list
-            
-            if (count % batch_size == 0):
-                yield img_list
+                
     else:
         img = Image.open(path_folder)
         img_list.append(np.array(img))

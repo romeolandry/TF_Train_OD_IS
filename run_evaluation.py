@@ -22,7 +22,7 @@ parser.add_argument("-m","--model", required = True,
 
 parser.add_argument("-t","--type",
                     required = True,
-                    choices= ['ssd', 'mask'],
+                    choices= ['bbox', 'segm'],
                     help="choose beetwen ssd and mask")
 
 parser.add_argument("-b","--batch_size", default=32,
@@ -49,8 +49,8 @@ if __name__ == "__main__":
                       model_name,
                       args.path_to_ann,
                       int(args.batch_size))
-    if args.type == 'ssd':
+    if args.type == 'bbox':
         evaluate.generate_detection_results_ssd()
-    if args.type == 'mask':
+    if args.type == 'segm':
         evaluate.generate_detection_results_mask()
-    evaluate.COCO_mAP_bbox()
+    evaluate.COCO_process_mAP(args.type)

@@ -61,40 +61,17 @@ def make_preprocessing (type):
         pass
     return False
 
-def make_eval_on_train(model_name):
-    """
-    Execute the model_main_tf2.py provided by the Api to Evaluate a selected model.
-    the trained model will be save into model/ directory. this will create if not exist.
-    """
-
-    # check if directory exist
-    model_url = LIST_MODEL_TO_DOWNLOAD[model_name] # get model url from
-    file_name = (model_url.split("/")[-1]).split(".")[0] # file name from url
-    file_name = file_name.split('.')[0] # get file name without extension
-
-    new_file_name = PREFIX_MODEL_NAME + file_name # add prefixe
-    
-    if not os.path.exists(os.path.join(PATH_TRAINED_MODELS,new_file_name)):
-        if not os.path.exists(PATH_TRAINED_MODELS):
-            os.mkdir(PATH_TRAINED_MODELS)
-        os.mkdir(os.path.join(os.path.join(PATH_TRAINED_MODELS,new_file_name)))
-    
-    ##  get pipeline path
-    if not os.path.isfile(os.path.join(PATH_PRE_TRAINED_MODELS,file_name,'pipeline.config')):
-        assert "Pre-trained model don't have config"
-    
-    path_to_pipeline = os.path.join(PATH_PRE_TRAINED_MODELS,file_name,'pipeline.config')
-    path_to_save_trained_model = os.path.join(PATH_TRAINED_MODELS,new_file_name)
-    
+def make_eval(model_dir, pipeline, checkpoint,timeout):
+        
     # get create_coco_tf_record.py path
     model_main_tf2 = os.path.join(Path_to_objection_dir,'model_main_tf2.py')
     if not os.path.exists(model_main_tf2):
         sys.stderr.write("Please set the correct path to object_detection dir in the file run_config")
     command = 'python ' + model_main_tf2
 
-    arguments = ' --model_dir='+ path_to_save_trained_model +' --pipeline_config_path='+ path_to_pipeline + \
-        ' --num_train_steps='+ str(NUM_TRAIN_STEP) +' --checkpoint_dir=' + path_to_save_trained_model + \
-        ' --eval'
+    arguments = ' --model_dir='+ model_dir +' --pipeline_config_path='+ pipeline + \
+        ' --num_train_steps='+ str(NUM_TRAIN_STEP) +' --checkpoint_dir=' + checkpoint + \
+        ' --eval_timeout' +  str(timeout)+ ' --alsologtostderr'
 
     try:
         subprocess.call(command + arguments, shell= True)
@@ -135,7 +112,7 @@ def make_train(model_name):
 
     arguments = ' --model_dir='+ path_to_save_trained_model +' --pipeline_config_path='+ path_to_pipeline + \
         ' --num_train_steps='+ str(NUM_TRAIN_STEP) + ' --checkpoint_every_n='+ str(CHECKPOINT_EVERY_N_STEP) + \
-        ' --train'
+        ' --alsologtostderr'
     try:
         subprocess.call(command + arguments, shell= True)
         return True
@@ -143,33 +120,12 @@ def make_train(model_name):
         print("Status : FAIL", exc.returncode, exc.output)
         return False
 
-def make_export(model_name):
+def make_export(model_dir, pipeline, checkpoint):
     """
-    Execute the model_main_tf2.py provided by the Api to train an selected model.
+    Execute the exporter_main_v2.py provided by the Api to train an selected model.
     the trained model will be save into model/ directory. this will create if not exist.
     """
     # check if directory exist
-    model_url = LIST_MODEL_TO_DOWNLOAD[model_name] # get model url from
-    file_name = (model_url.split("/")[-1]).split(".")[0] # file name from url
-    file_name = file_name.split('.')[0] # get file name without extension
-
-    file_name_trained = PREFIX_MODEL_NAME + file_name
-
-    new_file_name = PREFIX_MODEL_NAME + file_name + SUFFIX_EXPORT # add prefixe
-    
-    if not os.path.exists(os.path.join(PATH_TRAINED_MODELS,file_name_trained)):
-        return False
-    trained_checkpoint_dir = os.path.join(PATH_TRAINED_MODELS,file_name_trained)
-    # get pipeline 
-    
-    path_to_pipeline = os.path.join(PATH_PRE_TRAINED_MODELS,file_name,'pipeline.config')
-
-    # check output dir create if not exist
-    if not os.path.exists(os.path.join(PATH_TO_EXPORT_DIR,new_file_name)):
-        if not os.path.exists(PATH_TO_EXPORT_DIR):
-            os.mkdir(PATH_TO_EXPORT_DIR)
-        os.mkdir(os.path.join(PATH_TO_EXPORT_DIR,new_file_name))    
-    output_dir = os.path.join(PATH_TO_EXPORT_DIR,new_file_name)
 
     # get create_coco_tf_record.py path
     exporter_main_v2 = os.path.join(Path_to_objection_dir,'exporter_main_v2.py')
@@ -177,8 +133,8 @@ def make_export(model_name):
         sys.stderr.write("Please set the correct path to object_detection dir in the file run_config")
     command = 'python ' + exporter_main_v2
 
-    arguments =' --input_type '+ INPUT_TYPE[0] + ' --pipeline_config_path=' + path_to_pipeline + ' --trained_checkpoint_dir=' \
-        + trained_checkpoint_dir + ' --output_directory=' +  output_dir
+    arguments =' --input_type '+ INPUT_TYPE[0] + ' --pipeline_config_path=' + pipeline + ' --trained_checkpoint_dir=' \
+        + checkpoint + ' --output_directory=' +  model_dir
 
     try:
         subprocess.call(command + arguments, shell= True)

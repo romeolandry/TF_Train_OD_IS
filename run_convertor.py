@@ -12,18 +12,18 @@ from scripts.Evaluation.convertor import Convertor
 parser = argparse.ArgumentParser(description="Choose what you won beetwen [Data_preprocessing, Train, Evaluate]")
 
 
-parser.add_argument("-t","--type", choices=['tf-trt','tf-infer'],
+parser.add_argument("-t","--type", choices=['tf_trt','freeze'],
     required=True,
-    help="get a  tf model for inference or tf-trt for inference")
+    help=" convert to tf frozen graph(freeze) or tf-trt for inference")
 
 parser.add_argument("-p","--path", required=True,
-    help="path to model to convert .h5 or tensorflow model directory (saved_model)")
+    help="path to model to convert .h5 or tensorflow model directory (savedModel)")
 
 parser.add_argument("--mode", default= PRECISION_MODE,
-    help="precision mode if you won a tf-trt model")
+    help="precision mode if you won a tf_trt model")
 
 parser.add_argument("--max_ws", default=MAX_WORKSPACE_SIZE_BITES,
-    help="MAX_WORKSPACE_SIZE_BITES for tf-trt model")
+    help="MAX_WORKSPACE_SIZE_BITES for tf_trt model")
 
 parser.add_argument("--input_size", default=640,
     help="Input size of image for eventual calibration")
@@ -33,7 +33,7 @@ parser.add_argument("--batch_size", default=32,
 
 
 def main(args):
-    if args.type =="tf-infer":
+    if args.type =="freeze":
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow inference model  \n", bold=True, fg='green'))
         sys.stderr.write("Not available")
         
@@ -57,10 +57,10 @@ def main(args):
         original_path,saved_model_path = con.convert_to_TF_TRT_graph_and_save(calibration_data=batched_input)
 
         # save performance
-        if args.type == 'tf-trt':
+        if args.type == 'tf_trt':
             mode = 'TensorFlow-TensorRT'
         else:
-            mode = 'tf-infer'
+            mode = 'freeze'
         value = {
             'ORIGINAL': original_path,
             'PRECISION_MODE': args.mode,

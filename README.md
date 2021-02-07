@@ -152,17 +152,35 @@ Project_dir/
 
 
 
-## Train
+## Train-Evaluation from checkpoint- Export to SavedModel
 
-if the data configuration and model configuration was well done, the following command will launch the train phase
+if the data configuration and model configuration was well done. The following action can be proceed on downloaded model
 
-```shell
-$ python run.py -m ssd_resnet50_v1
-```
+- Train: the trained model will be saved into a new directory `model` . With log file and checkpoint.
+
+  ```shell
+  $ python run.py -a train -m model name
+  ```
+
+- Evaluate from checkpoint. This will evaluate the from the checkpoint that was given in `pipeline` 
+
+  - `--model_dir` where to write even for tensorboard
+
+  ```shell
+  $ python run.py -a eval --model_dir --pipeline_config --checkpoint_dir
+  ```
+
+- Export to Tensorflow  `SavedModel` 
+
+  - `--model_dir` where to save the exported model
+  
+  ```shell
+$ python run.py -a export --model_dir --pipeline_config --checkpoint_dir
+  ```
 
 At the end of the train, the train model will be saved into a new directory `model` and  will also be exported as a definition graph into `exported_model` in case you won to continue train the same model.
 
-## Evaluation
+## Evaluation - SavedModel/TF-TRT-Model and ONNX
 
 Evaluate a saved model
 
@@ -201,3 +219,19 @@ To inference using web-cam run :
 ```shell
 $ python run_inference.py --webcam  -t mask -m path_to_model_name
 ```
+
+## Convertor
+
+The Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (FP32,FP16, INT8 ) Model. To convert to SavedModel to ONNX use []() for SSD and []() for maskrcnn.
+
+- `--type or -t` convert to Tensorflow frozen graph `freeze)`or Tensorflow-TensorRT for inference `tf_trt`
+- `-p or --path` path to model to convert . For Tensorflow model directory (savedModel). Keras models models are also supporte `.h5`
+- ` --mode` precision mode if you won a tf_trt model. eg: FP32
+- `--max_ws` MAX_WORKSPACE_SIZE_BITES for tf-trt model. eg: 8*(10**9)
+- `--input_size` Input size of image for eventual calibration. In case to convert to INT8
+- `--batch_size `batch-size for the  calibrate function. eg:32
+
+```shell
+$ python run_convertor.py -t tf_trt -p path_to_saved_model_dir  
+```
+

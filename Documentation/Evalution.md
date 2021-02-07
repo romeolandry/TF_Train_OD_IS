@@ -21,3 +21,8 @@
 ## Inference mask
    [inference with mask](https://colab.research.google.com/github/tensorflow/hub/blob/master/examples/colab/tf2_object_detection.ipynb?hl=ar#scrollTo=zl3qdtR1OvM_)
 
+## Freeze Model from Checkpoint 
+   [freeze Model](https://www.youtube.com/watch?v=OKieIB-QD4c)
+
+   [tf2.x freeze model](https://leimao.github.io/blog/Save-Load-Inference-From-TF2-Frozen-Graph/)
+

@@ -35,6 +35,7 @@ parser.add_argument("--batch_size", default=32,
 def main(args):
     if args.type =="tf-infer":
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow inference model  \n", bold=True, fg='green'))
+        sys.stderr.write("Not available")
         
     else:
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow-TensorRT model \n", bold=True, fg='green'))
@@ -59,7 +60,7 @@ def main(args):
         if args.type == 'tf-trt':
             mode = 'TensorFlow-TensorRT'
         else:
-            mode = 'UFF_Parser'
+            mode = 'tf-infer'
         value = {
             'ORIGINAL': original_path,
             'PRECISION_MODE': args.mode,

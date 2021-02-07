@@ -29,36 +29,38 @@ from configs.run_config import *
     Returns:
         list of  uint8 numpy array with shape (img_height, img_width, 3)        
 """
-def load_img_from_folder(path_folder, number_of_images = None, mAP = False, batch_size= 32,image_size = [640,640]):
+
+def load_img_from_folder(path_folder, validation_split=0.1, mAP = False, batch_size= 32,image_size = [640,640]):
     
     img_list = []
     batch_number = 0
     count = 0
     total_file = len(glob.glob1(path_folder + '/','*.jpg'))
-    total_loaded = 0
-    if number_of_images is not None:
-        total_file = number_of_images
+
+    total_file =  total_file * validation_split
     
-    if os.path.isdir(path_folder):
-        for filename in glob.glob(path_folder + '/*.jpg'):
-            img = Image.open(filename).resize((image_size[0],image_size[1]))
-            if not mAP:
-                img_list.append(np.array(img))
-            else:
-                # get Id of image
-                imageId = int(filename.split('.')[0].split('/')[-1]) 
-                img_list.append({'imageId':imageId,
-                                 'np_image':np.array(img)})
-            count +=1
-            if (count == total_file):
-                return img_list
-            else:
-                yield img_list
-                
-    else:
-        img = Image.open(path_folder)
-        img_list.append(np.array(img))
-        return img_list
+    ndx = 0
+    if not os.path.isdir(path_folder):
+        sys.stderr.write("Image folder is not a directory")
+
+    for filename in glob.glob(path_folder + '/*.jpg'):
+        img = Image.open(filename).resize((image_size[0],image_size[1]))
+        if(count > total_file):
+            break
+
+        if not mAP:
+            img_list.append(np.array(img))
+        else:
+            # get Id of image
+            imageId = int(filename.split('.')[0].split('/')[-1]) 
+            img_list.append({'imageId':imageId,
+                                'np_image':np.array(img)})
+        
+        if (len(img_list) and (len(img_list) % batch_size) == 0):
+            yield img_list[ndx:min(ndx + batch_size,len(img_list))]
+            ndx = ndx + batch_size
+
+        count = count + 1
 
 
     """
@@ -95,7 +97,7 @@ def load_img_from_folder_for_infer(path_folder, number_of_images = None,image_si
         return img_list
 
 
-def predict_and_benchmark_throughput(batched_input, infer, N_warmup_run=50, N_run=1000):
+''' def predict_and_benchmark_throughput(batched_input, infer, N_warmup_run=50, N_run=1000):
     elapsed_time = []
     all_preds = []
     batch_size = batched_input.shape[0]
@@ -123,7 +125,7 @@ def predict_and_benchmark_throughput(batched_input, infer, N_warmup_run=50, N_ru
 
     print('Throughput: {:.0f} images/s'.format(N_run * batch_size / elapsed_time.sum()))
     totall_time = N_run * batch_size / elapsed_time.sum()
-    return all_preds, totall_time
+    return all_preds, totall_time '''
 
 def batch_input (batch_size=8, input_size=[299,299,3], path_to_test_img_dir=''):
 
@@ -159,5 +161,6 @@ def save_performance(status_to_save, json_data,file_name=None):
                 json.dump(data,js_file)
 
     if(status_to_save=='prediction'):
+       
         with open (os.path.join(PATH_PERFORMANCE_INFER,file_name),'w+') as json_file:
             json_file.write(json.dumps(json_data, indent=4))

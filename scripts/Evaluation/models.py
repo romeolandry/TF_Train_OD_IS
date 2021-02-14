@@ -8,8 +8,8 @@ sys.path.append(os.path.abspath(os.curdir))
 
 import tensorflow as tf
 import numpy as np
-
-
+from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
+from tensorflow.python.tools import optimize_for_inference_lib
 from tensorflow import keras
 from pathlib import Path
 from tensorflow.python.compiler.tensorrt import trt_convert as trt
@@ -18,11 +18,7 @@ from configs.run_config import *
 # Enable GPU dynamic memory allocation
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
-    
-
-
-    
+    tf.config.experimental.set_memory_growth(gpu, True)    
 class Model:
     def __init__(self,
                  path_to_model,
@@ -43,7 +39,11 @@ class Model:
         and if tf model directory conten .pb file
     '''
     def check_model_path(self):
-        return (fname.endswith('.pb') for fname in os.listdir(self.__path_to_model))
+        if os.path.isdir(self.__path_to_model):
+            return (fname.endswith('.pb') for fname in os.listdir(self.__path_to_model))
+        else:
+            return os.path.exists(self.__path_to_model)
+        
     
     ''' 
         This function load the from a given path.
@@ -68,6 +68,25 @@ class Model:
         click.echo(click.style(f"\n the model was loaded in {elapstime} seconds. \n", bold=True, fg='green'))
         return self.__detection_model, self.__model_name
     
+    ''' 
+        Load freezed model using tensorflow 1.x read function
+        tf 2.X don't use Graph and session anymore.
+    '''
+    def load_freezed_model(self):
+        elapstime = 0
+        if not (self.check_model_path()):
+            sys.stderr.write("Load an correct model file")
+        
+        with tf.io.gfile.GFile(self.__path_to_model,'rb') as f:
+            start =time.time()
+            graph_def = tf.compat.v1.GraphDef()
+            graph_def.ParseFromString(f.read())
+            end = time.time()
+            elapstime = end - start
+        
+        click.echo(click.style(f"\n the was parsed in  {elapstime} seconds. \n", bold=True, fg='green'))
+        return graph_def, self.__model_name
+                
 
 class Convertor:
     
@@ -137,28 +156,22 @@ class Convertor:
 
     def freeze_savedModel(self, image_size=640):
 
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
-        from tensorflow.python.tools import optimize_for_inference_lib
-
         infer = self.__model.signatures["serving_default"]
       
         # convert the model to ConcreteFunction.
         # since tf.2.x doesn't session any more.
-        full_model = tf.function(lambda input_tensor : infer(input_tensor))
-        #full_model = full_model.get_concrete_function(
-        #    tf.TensorSpec(self.__model.inputs[0].shape, self._model.inputs[0].dtype)
-        #)
-
+        full_model = tf.function(lambda input_tensor: infer(input_tensor))
+        
         full_model = full_model.get_concrete_function(
                             input_tensor=tf.TensorSpec(shape=[1, image_size, image_size, 3], 
-                                                        dtype=np.uint8,name='input_tensor')
+                                                        dtype=np.uint8)
                                                         ) 
         frozen_func = convert_variables_to_constants_v2(full_model)
         frozen_func.graph.as_graph_def()
 
         
-        input_layers = [x.name for x in frozen_func.inputs ]
-        outputs = [x.name for x in frozen_func.outputs ]
+        input_layers = [x.name for x in frozen_func.inputs]
+        outputs = [x.name for x in frozen_func.outputs]
         
         # Save specification
         model_dir = os.path.join(self.__path_to_model,'../forzen_model')
@@ -180,7 +193,28 @@ class Convertor:
                 f.write(f"\n {value}\n")
             f.write("\n output \n")
             for value in outputs:
-                f.write(f"\n {value}\n")
+                if  value == "Identity:0":
+                    f.write(f"\n detection_anchor_indices ==> {value}  \n")
+                if  value == "Identity_1:0":
+                    f.write(f"\n detection_boxes ==> {value}  \n")
+
+                if  value == "Identity_2:0":
+                    f.write(f"\n detection_classes ==> {value}  \n")
+
+                if  value == "Identity_3:0":
+                    f.write(f"\n detection_multiclass_scores ==> {value}  \n")
+
+                if  value == "Identity_4:0":
+                    f.write(f"\n detection_scores ==> {value}  \n")
+
+                if  value == "Identity_5:0":
+                    f.write(f"\n num_detections ==> {value}  \n") 
+
+                if  value == "Identity_6:0":
+                    f.write(f"\n raw_detection_boxes ==> {value}  \n")
+
+                if  value == "Identity_7:0":
+                    f.write(f"\n raw_detection_scores ==> {value}  \n")
 
         # Save the freezed Graph
         tf.io.write_graph(graph_or_graph_def=frozen_func.graph,

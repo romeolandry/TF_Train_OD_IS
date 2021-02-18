@@ -18,7 +18,9 @@ from configs.run_config import *
 # Enable GPU dynamic memory allocation
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)    
+    tf.config.experimental.set_memory_growth(gpu, True)  
+
+
 class Model:
     def __init__(self,
                  path_to_model,
@@ -28,12 +30,25 @@ class Model:
         self.__detection_model = None
 
         ## get model name from path
-        if os.path.basename(self.__path_to_model) != 'saved_model':
-            self.__model_name = os.path.basename(self.__path_to_model)
-        else:
-            self.__model_name = self.__path_to_model.split('/')[-2]
+        self.__model_name = self.__path_to_model.split('/')[-2]
+        self.__logdir = os.path.join(LogDir,self.__model_name)
 
-    
+    def tf_pb_viewer(self):
+        if not (self.check_model_path()):
+            sys.stderr.write("Load an correct model file")
+        if not os.path.exists(self.__logdir):
+            os.makedirs(self.__logdir)
+        
+        graph_def, model = self.load_freezed_model()
+        
+        with tf.compat.v1.Session() as sess:
+            sess.graph.as_default()
+            tf.import_graph_def(graph_def)
+            train_writer = writer = tf.compat.v1.summary.FileWriter(self.__logdir,sess.graph)
+            train_writer.flush()
+            train_writer.close()
+
+        
     ''' 
         Check if keras model is really a keras model
         and if tf model directory conten .pb file

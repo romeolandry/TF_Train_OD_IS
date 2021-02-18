@@ -143,7 +143,7 @@ class Convertor:
                 raise('calibraion is required to process this convertion')
             self.__model_name = self.__model_name + '_TFTRT_INT8'
         
-        output_saved_model_dir = os.path.join(PATH_TO_CONVERTED_MODELS,self.__model_name)
+        output_saved_model_dir = os.path.join(PATH_TO_CONVERTED_MODELS,self.__model_name + '/saved_model')
 
         conversion_params = trt.DEFAULT_TRT_CONVERSION_PARAMS._replace(
             precision_mode=self.__precision_mode,
@@ -169,6 +169,10 @@ class Convertor:
         
         return original_name,output_saved_model_dir
 
+    ''' 
+        Freeze Tensorflow savedModel for Inference 
+    '''
+    
     def freeze_savedModel(self, image_size=640):
 
         infer = self.__model.signatures["serving_default"]

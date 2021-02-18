@@ -13,6 +13,8 @@ from tensorflow.keras.applications.inception_v3 import preprocess_input, decode_
 sys.path.append(os.path.abspath(os.curdir))
 
 from configs.run_config import *
+import cv2
+
 #from scripts.api_scrpit import *
 
 """
@@ -30,7 +32,7 @@ from configs.run_config import *
         list of  uint8 numpy array with shape (img_height, img_width, 3)        
 """
 
-def load_img_from_folder(path_folder, validation_split=0.1, mAP = False, batch_size= 32,image_size = [640,640]):
+def load_img_from_folder(path_folder, validation_split=0.1, mAP = False, batch_size= 32):
     
     img_list = []
     batch_number = 0
@@ -44,7 +46,7 @@ def load_img_from_folder(path_folder, validation_split=0.1, mAP = False, batch_s
         sys.stderr.write("Image folder is not a directory")
 
     for filename in glob.glob(path_folder + '/*.jpg'):
-        img = Image.open(filename).resize((image_size[0],image_size[1]))
+        img = Image.open(filename) #.resize((image_size[0],image_size[1]))
         if(count > total_file):
             break
 
@@ -84,7 +86,7 @@ def load_img_from_folder_for_infer(path_folder, number_of_images = None,image_si
 
     if os.path.isdir(path_folder):
         for filename in glob.glob(path_folder + '/*.jpg'):
-            img = Image.open(filename).resize((image_size[0],image_size[1]))
+            img = Image.open(filename)
             img_list.append(np.array(img))
 
             count +=1
@@ -164,3 +166,24 @@ def save_performance(status_to_save, json_data,file_name=None):
        
         with open (os.path.join(PATH_PERFORMANCE_INFER,file_name),'w+') as json_file:
             json_file.write(json.dumps(json_data, indent=4))
+
+''' 
+    Read label text and it as diction key value
+'''
+def read_label_txt (path):
+    count = 0
+    categories= {}
+
+    with open(path, "r") as f:
+        Lines = f.readlines()
+                
+        for line in Lines:
+            count = count + 1
+            categories.update({count:line.strip()})
+    return categories
+
+def set_input_camera(camera_input,camera_width,camera_height):
+    cap = cv2.VideoCapture(camera_input)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH,1080)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT,700)
+    return cap

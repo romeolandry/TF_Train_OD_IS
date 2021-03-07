@@ -16,28 +16,59 @@ parser.add_argument("-t","--type", choices=['tf_trt','freeze'],
     required=True,
     help=" convert to tf frozen graph(freeze) or tf-trt for inference")
 
-parser.add_argument("-p","--path", required=True,
+parser.add_argument("-p","--path",type=str,
+    required=True,
     help="path to savedModel to convert")
 
-parser.add_argument("--mode", default= PRECISION_MODE,
-    help="precision mode if you won a tf_trt model")
+parser.add_argument("--mode", type=str,
+    default= PRECISION_MODE, choices= ACCEPTED_MODE,
+    help="precision mode for tf_trt model")
 
-parser.add_argument("--max_ws", default=MAX_WORKSPACE_SIZE_BITES,
+parser.add_argument("--max_ws", type=int,
+    default=MAX_WORKSPACE_SIZE_BITES,
     help="MAX_WORKSPACE_SIZE_BITES for tf_trt model")
 
-parser.add_argument("--input_size", default=640,
+parser.add_argument("--min_seg_size", type=int,
+    default=MIN_SEGMENTATION_SIZE,
+    help="Min Segmentation size for tf_trt model")
+
+parser.add_argument("--input_size", type=int,
+    default=640,
     help="Input size of image for eventual calibration")
 
-parser.add_argument("--batch_size", default=32,
+parser.add_argument("--input_data_dir", type=str,
+    default=PATH_IMAGES +'/val2017',
+    help=" Vaildation Input directory  of image for eventual calibration")
+
+parser.add_argument("--annotation_file", type=str,
+    default=PATH_ANNOTATIONS +'/instances_val2017.json',
+    help=" path to coco annotation file to load  input file")
+
+parser.add_argument("--calibration_data_dir", type=str,
+    default=PATH_ANNOTATIONS +'/bbox',
+    help=" path to directory contening TFRecord file vor validation")
+
+parser.add_argument("--batch_size",type=int, 
+    default=32,
     help="batch-size to calibrate the data")
 
 
 def main(args):
+    con = Convertor(args.path,
+                        max_workspace_size_bytes=args.max_ws,
+                        min_seg_size= args.min_seg_size,
+                        precision_mode=args.mode,
+                        input_size=args.input_size,
+                        val_data_dir=args.input_data_dir,
+                        annotation_file=args.annotation_file,
+                        calibraion_data_dir= args.calibration_data_dir,
+                        batch_size= args.batch_size)
     if args.type =="freeze":
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow inference model  \n", bold=True, fg='green'))
         # sys.stderr.write("Not available \n")
-        con = Convertor(args.path)
-        con.freeze_savedModel(image_size=int(args.input_size))
+        
+        #con.freeze_savedModel(image_size=args.input_size)
+        con.freeze_savedModel_update()
         
     else:
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow-TensorRT model \n", bold=True, fg='green'))
@@ -51,12 +82,9 @@ def main(args):
             resp = str.capitalize(c)
             if resp=='N':
                 raise("changed input size image")
-
-        size = int(args.input_size)
-        batched_input = batch_input(batch_size=args.batch_size, input_size=[size,size,3], path_to_test_img_dir='images/test2017')
         
-        con = Convertor(args.path,args.mode,args.max_ws)
-        original_path,saved_model_path = con.convert_to_TF_TRT_graph_and_save(calibration_data=batched_input)
+
+        model_name,saved_model_path = con.convert_to_TF_TRT_graph_and_save()
 
         # save performance
         if args.type == 'tf_trt':
@@ -64,11 +92,12 @@ def main(args):
         else:
             mode = 'freeze'
         value = {
-            'ORIGINAL': original_path,
+            'CONVERTED_MODEL': model_name,
             'PRECISION_MODE': args.mode,
             'MAX_WORKSPACE_SIZE_BITES': args.max_ws,
+            'MIN_SEGMENTATION_SIZE': args.min_seg_size,
             'CONVERSION_TYPE': mode,
-            'CONVERTED_MODEL':saved_model_path
+            'CONVERTED_MODEL_location':saved_model_path
         }
         model_name = os.path.basename(saved_model_path)
         to_save = {

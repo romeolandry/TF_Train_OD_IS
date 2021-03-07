@@ -15,7 +15,55 @@ sys.path.append(os.path.abspath(os.curdir))
 from configs.run_config import *
 import cv2
 
+from pycocotools.coco import COCO 
+
 #from scripts.api_scrpit import *
+
+"""
+    Create tensorflow dataset for coco validation data.
+
+    put each image tf.data.Dataset  to feed tensorflow.
+    
+    (height, width, channels) channels=3
+
+    Args:
+        path to one image or a folder conting images
+        number of image to load. default is None all the image will been loaded
+
+    Returns:
+        tf.data.Dataset and list of image ids       
+"""
+
+def load_img_from_folder_update(path_folder,
+                                annotations_path,
+                                batch_size,
+                                input_size,
+                                dtype=tf.uint8):
+
+    coco = COCO(annotation_file=annotations_path)
+    image_ids = coco.getImgIds() 
+    image_paths = []
+    for image_id in image_ids:
+        coco_img=coco.imgs[image_id]
+        image_paths.append(os.path.join(path_folder, coco_img['file_name']))
+    dataset = tf.data.Dataset.from_tensor_slices(image_paths)
+
+    def preprocess_fn(path):
+        image = tf.io.read_file(path)
+        image = tf.image.decode_jpeg(image, channels=3)
+        if input_size is not None:
+            image = tf.image.resize(image, size=(input_size,input_size))
+            image = tf.cast(image, dtype)
+        return image
+        print(f" image size {image.shape}")
+    dataset = dataset.map(map_func=preprocess_fn, num_parallel_calls=8)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.repeat(count=1)
+    
+    return dataset , image_ids
+
+
+
 
 """
     load image from file into numpy array.
@@ -32,7 +80,10 @@ import cv2
         list of  uint8 numpy array with shape (img_height, img_width, 3)        
 """
 
-def load_img_from_folder(path_folder, validation_split=0.1, mAP = False, batch_size= 32):
+def load_img_from_folder(path_folder,
+                        validation_split=0.1,
+                        mAP = False,
+                        batch_size= 32):
     
     img_list = []
     batch_number = 0
@@ -46,7 +97,7 @@ def load_img_from_folder(path_folder, validation_split=0.1, mAP = False, batch_s
         sys.stderr.write("Image folder is not a directory")
 
     for filename in glob.glob(path_folder + '/*.jpg'):
-        img = Image.open(filename) #.resize((image_size[0],image_size[1]))
+        img = Image.open(filename).resize((image_size[0],image_size[1]))
         if(count > total_file):
             break
 
@@ -80,7 +131,9 @@ def load_img_from_folder(path_folder, validation_split=0.1, mAP = False, batch_s
            list of  uint8 numpy array with shape (img_height, img_width, 3)        
     """
 
-def load_img_from_folder_for_infer(path_folder, number_of_images = None,image_size = [640,640]):
+def load_img_from_folder_for_infer(path_folder,
+                                   number_of_images = None,
+                                   image_size = [640,640]):
     img_list = []
     count = 0
 
@@ -134,7 +187,7 @@ def batch_input (batch_size=8, input_size=[299,299,3], path_to_test_img_dir=''):
     batched_input = np.zeros((batch_size,input_size[0],input_size[1],input_size[2]), dtype=np.float32)
    
     for i in range(1,batch_size+1):
-        index = str('%d' % (i % 1000)).zfill(12) # 581918
+        index = str('%d' % (i % 1000)).zfill(12) # 000000000001
         img_name = index + '.jpg'
         img_name= format(img_name)
         img_path =  path_to_test_img_dir + '/' + img_name

@@ -9,16 +9,22 @@ sys.path.append(os.path.abspath(os.curdir))
 import tensorflow as tf
 import numpy as np
 from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
+from tensorflow.python.saved_model import signature_constants
+from tensorflow.python.saved_model import tag_constants
 from tensorflow.python.tools import optimize_for_inference_lib
 from tensorflow import keras
 from pathlib import Path
 from tensorflow.python.compiler.tensorrt import trt_convert as trt
+from functools import partial
 from configs.run_config import *
+from scripts.Evaluation import utils
 
 # Enable GPU dynamic memory allocation
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)  
+    tf.config.experimental.set_memory_growth(gpu, True) 
+
+
 
 
 class Model:
@@ -101,25 +107,59 @@ class Model:
         
         click.echo(click.style(f"\n the was parsed in  {elapstime} seconds. \n", bold=True, fg='green'))
         return graph_def, self.__model_name
-                
+
+    ''' 
+        Load an saved_model for inference
+        input: path to savedModel directory 
+        output: tensorflow2.x serving model(freezed graph)
+    '''
+    def load_saved_model_for_inference(self):
+        if not self.check_model_path():
+            raise ValueError('The given path doesn\'t content tensorflow model')
+
+        saved_model = tf.saved_model.load(self.__path_to_model,
+                                          tags=[tag_constants.SERVING])
+        
+        graph_func = saved_model.signatures[
+            signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
+        ]
+        return graph_func
+
 
 class Convertor:
     
     def __init__(self,
                  path_to_model,
-                 precision_mode='PRECISION_MODE',
-                 max_workspace_size_bytes = 'MAX_WORKSPACE_SIZE_BITES'):
+                 max_workspace_size_bytes,
+                 min_seg_size,
+                 precision_mode,
+                 input_size,
+                 val_data_dir,
+                 annotation_file,
+                 calibraion_data_dir,
+                 batch_size
+                 ):
 
         self.__path_to_model = path_to_model
         self.__precision_mode = precision_mode
         self.__max_workspacesize_byte = max_workspace_size_bytes
+        self.__ming_seg_size = min_seg_size
+        self.__input_size = int(input_size)
+        self.__val_data_dir = val_data_dir
+        self.__annotation_file = annotation_file
+        self.__calibration_data = calibraion_data_dir
+        self.__batch_size = batch_size
 
 
-        model = Model(self.__path_to_model)
-        model_for_detection, model_name = model.Load_savedModel_model()
+        self.__model_class = Model(self.__path_to_model)
+        model_for_detection, model_name = self.__model_class.Load_savedModel_model()
 
         self.__model_name = model_name
         self.__model = model_for_detection
+        self.__converted_model_name = self.__model_name + '_'+ self.__precision_mode
+
+        ## set output model dir 
+        self.__output_saved_model_dir = os.path.join(PATH_TO_CONVERTED_MODELS,self.__converted_model_name +'/saved_model/')
     
     ''' 
         Convert all tensorflow model to tensorflow-tensorRT model
@@ -127,47 +167,48 @@ class Convertor:
             - saved_model_dir (vairables dir,assets,.pb-File)
         the converted model will be save into 'converted_models' directory
     '''
-    def convert_to_TF_TRT_graph_and_save(self,calibration_data = None):
-        assert self.__precision_mode in ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8'], f" the given precision mode {self.__precision_mode} not supported.\n It should be one of {['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']}"
+    def convert_to_TF_TRT_graph_and_save(self):
         
-        original_name = self.__path_to_model
-
-        if self.__precision_mode in ['FP32','fp32']:
-            self.__model_name = self.__model_name + '_TFTRT_F32'
-
-        if self.__precision_mode in ['FP16','fp16']:
-            self.__model_name = self.__model_name + '_TFTRT_F16'
-
-        if self.__precision_mode in ['INT8','int8']:
-            if calibration_data == None:
-                raise('calibraion is required to process this convertion')
-            self.__model_name = self.__model_name + '_TFTRT_INT8'
-        
-        output_saved_model_dir = os.path.join(PATH_TO_CONVERTED_MODELS,self.__model_name + '/saved_model')
-
         conversion_params = trt.DEFAULT_TRT_CONVERSION_PARAMS._replace(
             precision_mode=self.__precision_mode,
-            max_workspace_size_bytes=self.__max_workspacesize_byte
+            max_workspace_size_bytes=self.__max_workspacesize_byte,
+            minimum_segment_size = self.__ming_seg_size,
+            use_calibration=self.__precision_mode == 'INT8'
         )
 
+        start_time = time.time()
+        freezed_model = self.__model_class.load_saved_model_for_inference()        
         converter = trt.TrtGraphConverterV2(
             input_saved_model_dir=self.__path_to_model,
             conversion_params=conversion_params
         )
+        def input_fn(input_dir, num_iterations=2048):
+            dataset, image_ids = utils.load_img_from_folder_update(self.__val_data_dir,self.__annotation_file,self.__batch_size,self.__input_size)
+
+            for i, batch_image in enumerate(dataset):
+                if i>= num_iterations:
+                    break
+                yield(batch_image,)
+                print("  step %d/%d" % (i+1, num_iterations))
+                i += 1
+    
         click.echo(click.style(f"\n Using precision mode: {self.__precision_mode}\n", bold=True, fg='green'))
 
         if self.__precision_mode == trt.TrtPrecisionMode.INT8:
-            def calibraion_input_fn():
-                yield(calibration_data,)
-            converter.convert(calibraion_input_fn)
+            converter.convert(calibration_input_fn=partial(input_fn, self.calibraion_data_dir, 500//self.__batch_size))
         else:
             converter.convert()
         
+        # Build TensorRT engine File for the given Input
+        click.echo(click.style(f"\n Build TensorRT Engine...\n", bold=True, fg='green'))
+
+        converter.build(input_fn=partial(input_fn, self.__val_data_dir,1))        
+        
         click.echo(click.style(f"\n Saving {self.__model_name} \n", bold=True, fg='green'))
-        converter.save(output_saved_model_dir = output_saved_model_dir)
+        converter.save(output_saved_model_dir = self.__output_saved_model_dir)
         click.echo(click.style(f"\n Complet \n", bold=True, fg='green'))
         
-        return original_name,output_saved_model_dir
+        return self.__converted_model_name,self.__output_saved_model_dir
 
     ''' 
         Freeze Tensorflow savedModel for Inference 
@@ -242,4 +283,16 @@ class Convertor:
                           as_text=False)
         click.echo(click.style(f"\n model was freezed and saved to {model_dir}\n", bold=True, fg='green'))
 
+    ''' 
+        Freeze Tensorflow savedModel for Inference using tf2 module 
+    '''
+    
+    def freeze_savedModel_update(self):
+        graph_func = self.__model_class.load_saved_model_for_inference()
         
+        # Save the freezed Graph
+        tf.io.write_graph(graph_or_graph_def=graph_func.graph,
+                          logdir=os.path.join(self.__path_to_model,'..'),
+                          name="frozen_graph.pb",
+                          as_text=False)
+        click.echo(click.style(f"\n model was freezed and saved to {os.path.join(self.__path_to_model,'..')}\n", bold=True, fg='green'))        

@@ -14,8 +14,10 @@ PATH_ANNOTATIONS="annotations"
 PATH_TRAINED_MODELS = "models"
 PREFIX_MODEL_NAME = "my_"
 PATH_TO_LABELS_MAP = "Label_map/mscoco_complete_label_map.pbtxt"
+PATH_TO_LABELS_TEXT = "Label_map/Label.txt"
 PATH_TO_EXPORT_DIR = "exported_models"
 SUFFIX_EXPORT = "_saved"
+LogDir = "logdir"
 
 LIST_MODEL_TO_DOWNLOAD = {
     "ssd_resnet50_v1":"http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz",
@@ -44,11 +46,16 @@ PATH_TO_CONVERTED_MODELS = "converted_models"
 PATH_KERAS_TO_TF = "tf_from_keras"
 
 # TF-TRT
-MAX_WORKSPACE_SIZE_BITES = 8*(10**9)
-
+MAX_WORKSPACE_SIZE_BITES = 1<<30
 PRECISION_MODE = "FP32" # FP32 FP16 INT8 ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
+ACCEPTED_MODE = ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
+MIN_SEGMENTATION_SIZE = 2
 
 PATH_PERFORMANCE_CONVERT = "performances/convertort.json"
 PATH_PERFORMANCE_INFER = "performances"
 PATH_DIR_IMAGE_INF = "images_inferences"
+
+camere_input = int(0)
+camera_width = 720
+camera_height = 720
 

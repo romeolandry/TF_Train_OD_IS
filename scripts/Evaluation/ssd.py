@@ -434,9 +434,8 @@ class Evaluation:
                     
                 except :
                     continue
-
-
-                elapsed_time = np.append(elapsed_time, end_time - start_time)
+                if batch_count >2:
+                    elapsed_time = np.append(elapsed_time, end_time - start_time)
 
                 coco_img = coco.imgs[item['imageId']]
                 img_width= coco_img['width']

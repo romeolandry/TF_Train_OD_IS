@@ -521,8 +521,8 @@ class Evaluation:
                     end_time = time.time()
                 except Exception as e:
                     continue
-
-                elapsed_time = np.append(elapsed_time, end_time - start_time)
+                if batch_count >2:
+                    elapsed_time = np.append(elapsed_time, end_time - start_time)
 
                 boxes = detections['detection_boxes']
                 classes = detections['detection_classes']

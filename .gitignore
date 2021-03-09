@@ -90,7 +90,7 @@ ipython_config.py
 #   having no cross-platform support, pipenv may install dependencies that don't work, or not
 #   install all needed dependencies.
 #Pipfile.lock
-
+python ssd_eval.py -m /home/kamgo/Dokumente/Projects/Train_tensorflow_OD_API/workspace/TF_Train_OD_IS/converted_models/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8_FP32/saved_model -s 640 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
@@ -144,3 +144,4 @@ dmypy.json
 # test_image folder
 /test_images
 /performances
+/logdir

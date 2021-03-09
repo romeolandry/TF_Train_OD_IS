@@ -50,7 +50,7 @@ MAX_WORKSPACE_SIZE_BITES = 1<<20
 PRECISION_MODE = "FP32" # FP32 FP16 INT8 ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
 ACCEPTED_MODE = ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
 MIN_SEGMENTATION_SIZE = 1
-GPU_MEM_CAP = 3840 #  None to allow memora grow.
+GPU_MEM_CAP = None #  None to allow memora growth.
 INPUT_TYPE_MODEL='int'
 
 PATH_PERFORMANCE_CONVERT = "performances/convertort.json"

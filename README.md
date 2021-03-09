@@ -102,7 +102,7 @@ the directory Label_map content label-map for coco dataset
 
 ### Model
 
-FrozedThe `run_config.py` content a dictionary of models and her URL to automatically downloaded the model and unpack it.  run the following command to download a model and unpack it.
+The `run_config.py` content a dictionary of models and her URL to automatically downloaded the model and unpack it.  run the following command to download a model and unpack it.
 
 ```shell
 $ python run.py -m [model_name]
@@ -172,10 +172,9 @@ if the data configuration and model configuration was well done. The following a
 
 - Export to Tensorflow  `SavedModel` 
 
-  - `--model_dir` where to save the exported model
-  
+  - `--model_dir` where to save the exported model  
   ```shell
-$ python run.py -a export --model_dir --pipeline_config --checkpoint_dir
+  $ python run.py -a export --model_dir --pipeline_config --checkpoint_dir
   ```
 
 At the end of the train, the train model will be saved into a new directory `model` and  will also be exported as a definition graph into `exported_model` in case you won to continue train the same model.
@@ -184,17 +183,17 @@ At the end of the train, the train model will be saved into a new directory `mod
 
 FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (FP32,FP16, INT8 ) Model. To convert to SavedModel to ONNX use [Mask_inception_resnet_v2_onnx](./jupyter/Mask_inception_resnet_v2_onnx.ipynb) for SSD and [SSD_ONNX.ipynb](./jupyter/SSD_ONNX) for maskrcnn.
 
-*NOTE* To reduce size of GPU change the of ´GPU_MEM_CAP´ into [run_config](./configs/run_config.py). Set None to allow gpu memory grow.
+**NOTE** To allow tensorflow to use all available memory of GPU  change the of ´GPU_MEM_CAP´ into [run_config](./configs/run_config.py). Set it to max memory of GPU. by default `None`. its mean Tensorflow doesn't allow all the available memory however some model need more memory for more performance.
 
 - `--type or -t` convert to Tensorflow frozen graph `freeze)`or Tensorflow-TensorRT for inference `tf_trt`
 - `-p or --path` path to model to convert . For Tensorflow model directory (savedModel).
 - ` --mode` precision mode if you won a tf_trt model. eg: FP32
 - `--max_ws` MAX_WORKSPACE_SIZE_BITES for tf-trt model. eg: 8*(10**9)
 - `--input_size` Input size of image for eventual calibration. In case to convert to INT8
-- `--batch_size `batch-size for the  calibrate function. eg:32
+- `--batch_size `batch-size for the  calibrate function. eg:1. 
 
 ```shell
-$ python convert.py -t tf_trt -p path_to_saved_model_dir  
+$ python convert.py -t tf_trt -p path_to_saved_model_dir --batch_size 1 
 ```
 
 ## Evaluation - SavedModel/TF-TRT-Model and ONNX

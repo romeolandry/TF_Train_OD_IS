@@ -12,8 +12,6 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 import tensorflow as tf
 import numpy as np
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 sys.path.append(os.path.abspath(os.curdir))
 
 from configs.run_config import *
@@ -22,13 +20,6 @@ from scripts.Evaluation.utils import *
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-
-
-# Enable GPU dynamic memory allocation
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-
-#for gpu in gpus:
-#   tf.config.experimental.set_memory_growth(gpu, True)
 
 
 # set input output name

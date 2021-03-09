@@ -57,8 +57,8 @@ def main(args):
         if not args.path_to_images:
             raise("give the path for image file")
     
-    if args.freezed:
-        raise("Not available use savedModel")
+    #if args.freezed:
+    #    raise("Not available use savedModel")
     
     size = int(args.size)
     input_model_size = [size, size]
@@ -68,7 +68,7 @@ def main(args):
     if args.freezed:
         # Load model from forzen model .pb
         detection_model, model_name = model.load_freezed_model()
-        model.tf_pb_viewer()
+        # model.tf_pb_viewer()
     else:
         if args.webcam:
             raise("Opencv2 don't perform on savedModel Tensorflow. please use frozen graph")

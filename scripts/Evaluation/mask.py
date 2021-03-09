@@ -13,8 +13,6 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 import tensorflow as tf
 import numpy as np
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 sys.path.append(os.path.abspath(os.curdir))
 
 from object_detection.utils import ops as utils_ops
@@ -30,12 +28,6 @@ from pycocotools.cocoeval import COCOeval
 from pycocotools import mask as maskUtils
 
 from scripts.Evaluation.utils import read_label_txt, set_input_camera
-
-# Enable GPU dynamic memory allocation
-gpus = tf.config.experimental.list_physical_devices('GPU')
-for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
-
 
 # set input output name
 inputs = ["input_tensor:0"]
@@ -62,7 +54,6 @@ def wrap_frozen_graph(graph_def, inputs, outputs, print_graph=False):
     return wrapped_import.prune(
         tf.nest.map_structure(import_graph.as_graph_element, inputs),
         tf.nest.map_structure(import_graph.as_graph_element, outputs))
-
 
 
 
@@ -127,7 +118,7 @@ class Inference :
 
     
     
-    def mask_inference_image_cv2 (self, number_of_images=None):
+    def mask_inference_image_cv2 (self):
         
         # read and Preprocess image 
         img = cv.imread(self.__path_to_images)
@@ -144,30 +135,19 @@ class Inference :
         input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.uint8)
         # Apply inference 
         detections = self.__model(input_tensor)
-
-        ## convert all output to a numpy array
-        num_detections = int(detections.pop('num_detections'))
-
-        exit(num_detections)
-        detections = {key: value[0, :num_detections].numpy()
-                        for key, value in detections.items()}
-
-        detections['num_detections'] = num_detections
-        # detection_classes should be int64.
-        detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
-
-        
+               
         # Visualize detected bounding boxes.        
-        for i in range(num_detections):
+        for i in range(detections['num_detections']):
             classId = detections['detection_classes'][i]
             score = detections['detection_scores'][i]
             bbox = [float(v) for v in detections['detection_boxes'][i]]
+            mask = [float(v) for v in detections['detection_masks'][i]]
 
 
             if score > self.__threshold:
-                img = self.visualize_bbox(img,score,bbox,classId)
+                img = self.visualize_bbox_mask(img,score,bbox,mask,classId)
 
-        img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "savedmodel_cv2_test.png")
+        img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_savedmodel_cv2.png")
         cv.imwrite(img_path,img)
             
         cv.imshow('TensorFlow SSD-ResNet', img)
@@ -264,7 +244,6 @@ class Inference :
                 img = np.array(frame)
 
                 img_to_infer = cv.resize(img, (self.__model_image_size[0],self.__model_image_size[1]), interpolation=cv2.INTER_CUBIC)
-                           
                 
                 # Apply the prediction
                 # Identity_5:0 => num_detections
@@ -428,20 +407,21 @@ def transform_detection_to_cocoresult(image,boxes,masks,classes,scores):
     for i in range(boxes.shape[0]):
         classId = classes[i]
         score = scores[i]
-        bbox = np.around(boxes[i],1)
-        # normalise 
+        bbox = boxes[i]
+        
+        # normalize 
         bbox = bbox * np.array([w,h,w,h])
-        boxW = bbox[3]-bbox[1]
-        boxH = bbox[2]-bbox[0]
-        mask = cv.resize(masks[i], (boxW, boxH), interpolation=cv.INTER_NEAREST)
-        mask = np.uint8(mask)     
+        #boxW = bbox[3]-bbox[1]
+        #boxH = bbox[2]-bbox[0]
+        mask = cv.resize(masks[i], (w,h), interpolation=cv.INTER_NEAREST)
+        mask = np.uint8(masks[i])    
         
         result = {
-            "image_id":image['imageId'],
-            "category_id": int(classId),
-            "bbox":[bbox[1],bbox[0],boxW,boxH],
-            "score": float(score),
-            "segmentation": maskUtils.encode(np.asfortranarray(mask))
+            'image_id':image['imageId'],
+            'category_id': int(classId),
+            'bbox':[bbox[0],bbox[1],bbox[2]-bbox[0],bbox[3]-bbox[1]],
+            'score': score,
+            'segmentation': maskUtils.encode(np.asfortranarray(mask))
         }
         results.append(result)
     return results      
@@ -499,13 +479,7 @@ def postprocessing(img, boxes,classes, scores,mask, th=0.1):
         blended = ((0.4 * (255,0,0)) + (0.6 * roi)).astype("uint8")
 
         roi = img[startY:endY, startX:endX][mask]= blended
-
-
-        
-
-
-
-
+    return img
     
 
 class Evaluation:
@@ -524,7 +498,7 @@ class Evaluation:
     """
         Run detection on each image an write result into Json file
     """
-    def generate_detection_results_mask(self):
+    def generate_results_mask_compute_map(self):
         elapsed_time = []
         results = []
         total_image = 0
@@ -534,8 +508,7 @@ class Evaluation:
             # convert images to be a tensor
             batch_count = batch_count + 1
             print(f"run evaluation for batch {batch_count} \t")
-            for item in images:
-               
+            for item in images:               
                 try:
                     # convert images to be a tensor
                     input_tensort = tf.convert_to_tensor(item['np_image'])
@@ -557,19 +530,35 @@ class Evaluation:
                 masks  = detections['detection_masks']
 
                 result = transform_detection_to_cocoresult(item,boxes[0],masks[0],classes[0],scores[0])
-                
+                              
                 results.extend(result)
+                               
             total_image = total_image + len(images)
             print('average time pro batch: {:4.1f} ms'.format((elapsed_time[-len(images):].mean()) * 1000 ))            
-            print(f"Total evaluate {total_image} \t")
-        
-        ## save predicted annotation
-        print(f"save results in to json!")
-        save_performance('prediction', json_data=results, file_name= self.__model_name +'.json')
-            
+            print(f"Total evaluate {total_image} \t")        
+               
         print(f'total time {(sum(elapsed_time)/len(elapsed_time)*1000)}')
         print('After all Evaluation FPS {:4.1f} ms '.format(1000/(sum(elapsed_time)/len(elapsed_time)*1000)))
-  
+        
+        cocoGt = COCO(self.__path_to_annotations)
+        cocoDt = cocoGt.loadRes(results)
+        
+        imgIds = sorted(cocoGt.getImgIds())
+
+        click.echo(click.style(f"\n compute  bbox \n", bold=True, fg='green'))
+        cocoEval = COCOeval(cocoGt, cocoDt, "bbox")      
+        cocoEval.evaluate()
+        cocoEval.params.imgIds = imgIds
+        cocoEval.accumulate()
+
+        print(cocoEval.summarize())
+
+        click.echo(click.style(f"\n compute  segm \n", bold=True, fg='green'))
+        cocoEval = COCOeval(cocoGt, cocoDt, "segm")      
+        cocoEval.evaluate()
+        cocoEval.accumulate()
+
+        print(cocoEval.summarize())
 
     
     def COCO_process_mAP(self,type):

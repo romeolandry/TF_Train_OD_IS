@@ -46,16 +46,18 @@ PATH_TO_CONVERTED_MODELS = "converted_models"
 PATH_KERAS_TO_TF = "tf_from_keras"
 
 # TF-TRT
-MAX_WORKSPACE_SIZE_BITES = 1<<30
+MAX_WORKSPACE_SIZE_BITES = 1<<20
 PRECISION_MODE = "FP32" # FP32 FP16 INT8 ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
 ACCEPTED_MODE = ['FP32', 'FP16', 'INT8', 'fp32', 'fp16', 'int8']
-MIN_SEGMENTATION_SIZE = 2
+MIN_SEGMENTATION_SIZE = 1
+GPU_MEM_CAP = 3840 #  None to allow memora grow.
+INPUT_TYPE_MODEL='int'
 
 PATH_PERFORMANCE_CONVERT = "performances/convertort.json"
 PATH_PERFORMANCE_INFER = "performances"
 PATH_DIR_IMAGE_INF = "images_inferences"
 
-camere_input = int(0)
+camere_input = int(1)
 camera_width = 720
 camera_height = 720
 

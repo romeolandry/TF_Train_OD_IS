@@ -3,7 +3,8 @@ import sys
 import time
 import click
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0' 
 sys.path.append(os.path.abspath(os.curdir))
 
 import tensorflow as tf
@@ -22,7 +23,18 @@ from scripts.Evaluation import utils
 # Enable GPU dynamic memory allocation
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True) 
+    try:
+        if GPU_MEM_CAP is None:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        else:
+            tf.config.experimental.set_virtual_device_configuration(
+                gpu,
+                [tf.config.experimental.VirtualDeviceConfiguration(
+                    memory_limit=GPU_MEM_CAP)])
+    
+    except RuntimeError as e:
+        print('Can not set GPU memory config', e)
+
 
 
 
@@ -123,7 +135,7 @@ class Model:
         graph_func = saved_model.signatures[
             signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY
         ]
-        return graph_func
+        return graph_func , self.__model_name
 
 
 class Convertor:
@@ -137,7 +149,8 @@ class Convertor:
                  val_data_dir,
                  annotation_file,
                  calibraion_data_dir,
-                 batch_size
+                 batch_size,
+                 model_input_type
                  ):
 
         self.__path_to_model = path_to_model
@@ -149,6 +162,9 @@ class Convertor:
         self.__annotation_file = annotation_file
         self.__calibration_data = calibraion_data_dir
         self.__batch_size = batch_size
+        self.__model_input_type = tf.uint8
+        if model_input_type == 'float':
+            self.__model_input_type = tf.float32
 
 
         self.__model_class = Model(self.__path_to_model)
@@ -183,7 +199,7 @@ class Convertor:
             conversion_params=conversion_params
         )
         def input_fn(input_dir, num_iterations=2048):
-            dataset, image_ids = utils.load_img_from_folder_update(self.__val_data_dir,self.__annotation_file,self.__batch_size,self.__input_size)
+            dataset, image_ids = utils.load_img_from_folder_update(self.__val_data_dir,self.__annotation_file,self.__batch_size,self.__input_size,dtype=self.__model_input_type)
 
             for i, batch_image in enumerate(dataset):
                 if i>= num_iterations:
@@ -206,9 +222,10 @@ class Convertor:
         
         click.echo(click.style(f"\n Saving {self.__model_name} \n", bold=True, fg='green'))
         converter.save(output_saved_model_dir = self.__output_saved_model_dir)
+        end_time = time.time()
         click.echo(click.style(f"\n Complet \n", bold=True, fg='green'))
         
-        return self.__converted_model_name,self.__output_saved_model_dir
+        return self.__converted_model_name,self.__output_saved_model_dir, end_time-start_time
 
     ''' 
         Freeze Tensorflow savedModel for Inference 
@@ -281,18 +298,4 @@ class Convertor:
                           logdir=model_dir,
                           name="frozen_graph.pb",
                           as_text=False)
-        click.echo(click.style(f"\n model was freezed and saved to {model_dir}\n", bold=True, fg='green'))
-
-    ''' 
-        Freeze Tensorflow savedModel for Inference using tf2 module 
-    '''
-    
-    def freeze_savedModel_update(self):
-        graph_func = self.__model_class.load_saved_model_for_inference()
-        
-        # Save the freezed Graph
-        tf.io.write_graph(graph_or_graph_def=graph_func.graph,
-                          logdir=os.path.join(self.__path_to_model,'..'),
-                          name="frozen_graph.pb",
-                          as_text=False)
-        click.echo(click.style(f"\n model was freezed and saved to {os.path.join(self.__path_to_model,'..')}\n", bold=True, fg='green'))        
+        click.echo(click.style(f"\n model was freezed and saved to {model_dir}\n", bold=True, fg='green'))      

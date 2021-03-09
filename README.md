@@ -182,7 +182,9 @@ At the end of the train, the train model will be saved into a new directory `mod
 
 ## Convertor
 
-FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (FP32,FP16, INT8 ) Model. To convert to SavedModel to ONNX use []() for SSD and []() for maskrcnn.
+FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (FP32,FP16, INT8 ) Model. To convert to SavedModel to ONNX use [Mask_inception_resnet_v2_onnx](./jupyter/Mask_inception_resnet_v2_onnx.ipynb) for SSD and [SSD_ONNX.ipynb](./jupyter/SSD_ONNX) for maskrcnn.
+
+*NOTE* To reduce size of GPU change the of ´GPU_MEM_CAP´ into [run_config](./configs/run_config.py). Set None to allow gpu memory grow.
 
 - `--type or -t` convert to Tensorflow frozen graph `freeze)`or Tensorflow-TensorRT for inference `tf_trt`
 - `-p or --path` path to model to convert . For Tensorflow model directory (savedModel).

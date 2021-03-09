@@ -40,6 +40,10 @@ parser.add_argument("--input_data_dir", type=str,
     default=PATH_IMAGES +'/val2017',
     help=" Vaildation Input directory  of image for eventual calibration")
 
+parser.add_argument("--input_type", type=str,
+    default=INPUT_TYPE_MODEL,
+    help=" type of input tensor (int or float)")
+
 parser.add_argument("--annotation_file", type=str,
     default=PATH_ANNOTATIONS +'/instances_val2017.json',
     help=" path to coco annotation file to load  input file")
@@ -52,8 +56,8 @@ parser.add_argument("--batch_size",type=int,
     default=32,
     help="batch-size to calibrate the data")
 
-
 def main(args):
+    print(f"max workspace {args.max_ws}")
     con = Convertor(args.path,
                         max_workspace_size_bytes=args.max_ws,
                         min_seg_size= args.min_seg_size,
@@ -62,13 +66,13 @@ def main(args):
                         val_data_dir=args.input_data_dir,
                         annotation_file=args.annotation_file,
                         calibraion_data_dir= args.calibration_data_dir,
-                        batch_size= args.batch_size)
+                        batch_size= args.batch_size,
+                        model_input_type= args.input_type)
     if args.type =="freeze":
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow inference model  \n", bold=True, fg='green'))
         # sys.stderr.write("Not available \n")
         
-        #con.freeze_savedModel(image_size=args.input_size)
-        con.freeze_savedModel_update()
+        con.freeze_savedModel(image_size=args.input_size)
         
     else:
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow-TensorRT model \n", bold=True, fg='green'))
@@ -84,7 +88,7 @@ def main(args):
                 raise("changed input size image")
         
 
-        model_name,saved_model_path = con.convert_to_TF_TRT_graph_and_save()
+        model_name,saved_model_path, time = con.convert_to_TF_TRT_graph_and_save()
 
         # save performance
         if args.type == 'tf_trt':
@@ -97,7 +101,8 @@ def main(args):
             'MAX_WORKSPACE_SIZE_BITES': args.max_ws,
             'MIN_SEGMENTATION_SIZE': args.min_seg_size,
             'CONVERSION_TYPE': mode,
-            'CONVERTED_MODEL_location':saved_model_path
+            'CONVERTED_MODEL_location':saved_model_path,
+            'CONVERSION_TIME': time
         }
         model_name = os.path.basename(saved_model_path)
         to_save = {

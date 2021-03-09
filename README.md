@@ -190,7 +190,8 @@ FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (
 - ` --mode` precision mode if you won a tf_trt model. eg: FP32
 - `--max_ws` MAX_WORKSPACE_SIZE_BITES for tf-trt model. eg: 8*(10**9)
 - `--input_size` Input size of image for eventual calibration. In case to convert to INT8
-- `--batch_size `batch-size for the  calibrate function. eg:1. 
+- `--batch_size `batch-size for the  calibrate function. eg:1.
+- `--build_eng` Boolean if True the engine file for each Subgraph bigger than min_seg_size will builded
 
 ```shell
 $ python convert.py -t tf_trt -p path_to_saved_model_dir --batch_size 1 

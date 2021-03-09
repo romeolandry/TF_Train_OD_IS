@@ -150,7 +150,8 @@ class Convertor:
                  annotation_file,
                  calibraion_data_dir,
                  batch_size,
-                 model_input_type
+                 model_input_type,
+                 build_engine
                  ):
 
         self.__path_to_model = path_to_model
@@ -166,6 +167,7 @@ class Convertor:
         if model_input_type == 'float':
             self.__model_input_type = tf.float32
 
+        self.build_engine = build_eng
 
         self.__model_class = Model(self.__path_to_model)
         model_for_detection, model_name = self.__model_class.Load_savedModel_model()
@@ -215,10 +217,11 @@ class Convertor:
         else:
             converter.convert()
         
-        # Build TensorRT engine File for the given Input
-        click.echo(click.style(f"\n Build TensorRT Engine...\n", bold=True, fg='green'))
+        if self.__build_engine:
+            # Build TensorRT engine File for each graph with mode than min_seg_size nodes
+            click.echo(click.style(f"\n Build TensorRT Engine...\n", bold=True, fg='green'))
 
-        converter.build(input_fn=partial(input_fn, self.__val_data_dir,1))        
+            converter.build(input_fn=partial(input_fn, self.__val_data_dir,1))        
         
         click.echo(click.style(f"\n Saving {self.__model_name} \n", bold=True, fg='green'))
         converter.save(output_saved_model_dir = self.__output_saved_model_dir)

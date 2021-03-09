@@ -56,6 +56,10 @@ parser.add_argument("--batch_size",type=int,
     default=32,
     help="batch-size to calibrate the data")
 
+parser.add_argument("--build_eng",
+    default=False, action="store_true",
+    help=" Use freezed graph")
+
 def main(args):
     print(f"max workspace {args.max_ws}")
     con = Convertor(args.path,
@@ -67,7 +71,8 @@ def main(args):
                         annotation_file=args.annotation_file,
                         calibraion_data_dir= args.calibration_data_dir,
                         batch_size= args.batch_size,
-                        model_input_type= args.input_type)
+                        model_input_type= args.input_type,
+                        build_engine = args.build_eng)
     if args.type =="freeze":
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow inference model  \n", bold=True, fg='green'))
         # sys.stderr.write("Not available \n")

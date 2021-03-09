@@ -148,7 +148,7 @@ class Convertor:
                  input_size,
                  val_data_dir,
                  annotation_file,
-                 calibraion_data_dir,
+                 calibration_data_dir,
                  batch_size,
                  model_input_type,
                  build_engine
@@ -161,7 +161,7 @@ class Convertor:
         self.__input_size = int(input_size)
         self.__val_data_dir = val_data_dir
         self.__annotation_file = annotation_file
-        self.__calibration_data = calibraion_data_dir
+        self.__calibration_data = calibration_data_dir
         self.__batch_size = batch_size
         self.__model_input_type = tf.uint8
         if model_input_type == 'float':
@@ -213,7 +213,7 @@ class Convertor:
         click.echo(click.style(f"\n Using precision mode: {self.__precision_mode}\n", bold=True, fg='green'))
 
         if self.__precision_mode == trt.TrtPrecisionMode.INT8:
-            converter.convert(calibration_input_fn=partial(input_fn, self.calibraion_data_dir, 500//self.__batch_size))
+            converter.convert(calibration_input_fn=partial(input_fn, self.__calibration_data, 500//self.__batch_size))
         else:
             converter.convert()
         

@@ -167,7 +167,7 @@ class Convertor:
         if model_input_type == 'float':
             self.__model_input_type = tf.float32
 
-        self.__build_engine = build_eng
+        self.__build_engine = build_engine
 
         self.__model_class = Model(self.__path_to_model)
         model_for_detection, model_name = self.__model_class.Load_savedModel_model()

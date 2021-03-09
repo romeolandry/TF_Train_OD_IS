@@ -83,7 +83,8 @@ def load_img_from_folder_update(path_folder,
 def load_img_from_folder(path_folder,
                         validation_split=0.1,
                         mAP = False,
-                        batch_size= 32):
+                        batch_size= 32,
+                        input_size=640):
     
     img_list = []
     batch_number = 0
@@ -97,7 +98,7 @@ def load_img_from_folder(path_folder,
         sys.stderr.write("Image folder is not a directory")
 
     for filename in glob.glob(path_folder + '/*.jpg'):
-        img = Image.open(filename).resize((image_size[0],image_size[1]))
+        img = Image.open(filename).resize((input_size,input_size))
         if(count > total_file):
             break
 

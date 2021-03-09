@@ -19,7 +19,7 @@ $ cp object_detection/packages/tf2/setup.py .
 $ python -m pip install .
 ```
 
-Test installation
+FrozedTest installation
 
 ```shell
 # From within TensorFlow/models/research/
@@ -102,7 +102,7 @@ the directory Label_map content label-map for coco dataset
 
 ### Model
 
-The `run_config.py` content a dictionary of models and her URL to automatically downloaded the model and unpack it.  run the following command to download a model and unpack it.
+FrozedThe `run_config.py` content a dictionary of models and her URL to automatically downloaded the model and unpack it.  run the following command to download a model and unpack it.
 
 ```shell
 $ python run.py -m [model_name]
@@ -180,36 +180,54 @@ $ python run.py -a export --model_dir --pipeline_config --checkpoint_dir
 
 At the end of the train, the train model will be saved into a new directory `model` and  will also be exported as a definition graph into `exported_model` in case you won to continue train the same model.
 
+## Convertor
+
+FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (FP32,FP16, INT8 ) Model. To convert to SavedModel to ONNX use []() for SSD and []() for maskrcnn.
+
+- `--type or -t` convert to Tensorflow frozen graph `freeze)`or Tensorflow-TensorRT for inference `tf_trt`
+- `-p or --path` path to model to convert . For Tensorflow model directory (savedModel).
+- ` --mode` precision mode if you won a tf_trt model. eg: FP32
+- `--max_ws` MAX_WORKSPACE_SIZE_BITES for tf-trt model. eg: 8*(10**9)
+- `--input_size` Input size of image for eventual calibration. In case to convert to INT8
+- `--batch_size `batch-size for the  calibrate function. eg:32
+
+```shell
+$ python convert.py -t tf_trt -p path_to_saved_model_dir  
+```
+
 ## Evaluation - SavedModel/TF-TRT-Model and ONNX
 
 Evaluate a saved model
 
 - `-m or --model` to set the path to the model directory. in case of inference on image path to `saved_model`directory else path to model.
-- `-t or --type` to choose between an `segm` and `bbox`
-
 - `-b` or `--batch_size` to number of to proceed at one time.
 - `-p or --path_to_images` to set the directory contenting images the default directory  is the `val2017`.
+- `-a` or `--annotation` to set path to annotation. the default is the path `instances_val2017.json`.
 
 ```shell
-$ python run_evaluation.py  --model path_to_saved_model_dir  -t bbox --batch_size 100.
+$ python [ssd_eval.py/mask_eval.py]  --model path_to_saved_model_dir --batch_size 100
 ```
 
 ## Inference
 
+Depend of the model you won to Inference, it is prefixed file *model*_ inference.py  
+
 The file `run_inference` will be use to apply the model(pre-trained and exported) on saved images or from web-cam.
 
-- `--webcam ` if you won to use web-cam module 
-- `-p or --path_to_images` to set the directory contenting images the default directory  is the `test2017`.
-- `-t or --type` to choose between an SSD-Resnet50-v1(ssd) and MASK-RCNN(ssd)
+- `--freezed` : Boolean. default is `False`  set True inference with Frozen  model. its required to use Web-cam
+
+- `-m or --model` Path to the model directory. in case of Frozen Graph : give the path to the `Freezed_model.pb` else give the path the  `saved_model` directory .
+
+- `--webcam ` if you won to use web-cam module. **Note:** Only for frozen Graph
+- `-p or --path_to_images`  Path to the image.
 - `-s or --size` Input size of the model.
--  `-i or --nb_img` to set the number of image you won to inference into th given directory.
-- `-m or --model` to set the path to the model directory. in case of inference on image path to `saved_model`directory else path to model.
 - `-l or --label` set the path to label.
+- `--cam_input` Integer the index of the web-cam.
 
 To run inference on images.
 
 ```shell
-$ python run_inference.py -i 3 -s 640 -t mask -m path_to_saved_model_dir
+$ python ssd_inference.py -m [path_to_freezed/savedModel]  -s 640 --path_to_images 
 ```
 
 It will create a directory named `images_inferences` to save inference.
@@ -217,21 +235,7 @@ It will create a directory named `images_inferences` to save inference.
 To inference using web-cam run :
 
 ```shell
-$ python run_inference.py --webcam  -t mask -m path_to_model_name
+$ python ssd_inference.py --freezed -m path_to_freezed_model  -s 640 --webcam
 ```
 
-## Convertor
-
-The Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (FP32,FP16, INT8 ) Model. To convert to SavedModel to ONNX use []() for SSD and []() for maskrcnn.
-
-- `--type or -t` convert to Tensorflow frozen graph `freeze)`or Tensorflow-TensorRT for inference `tf_trt`
-- `-p or --path` path to model to convert . For Tensorflow model directory (savedModel). Keras models models are also supporte `.h5`
-- ` --mode` precision mode if you won a tf_trt model. eg: FP32
-- `--max_ws` MAX_WORKSPACE_SIZE_BITES for tf-trt model. eg: 8*(10**9)
-- `--input_size` Input size of image for eventual calibration. In case to convert to INT8
-- `--batch_size `batch-size for the  calibrate function. eg:32
-
-```shell
-$ python run_convertor.py -t tf_trt -p path_to_saved_model_dir  
-```
-
+Change `ssd_inference.py` to  `mask_inference.py` to apply inference with  instance segmentation model.

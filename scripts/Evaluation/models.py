@@ -176,6 +176,9 @@ class Convertor:
         self.__model = model_for_detection
         self.__converted_model_name = self.__model_name + '_'+ self.__precision_mode
 
+        if self.__build_engine:
+            self.__converted_model_name = self.__converted_model_name + '_builded'
+
         ## set output model dir 
         self.__output_saved_model_dir = os.path.join(PATH_TO_CONVERTED_MODELS,self.__converted_model_name +'/saved_model/')
     

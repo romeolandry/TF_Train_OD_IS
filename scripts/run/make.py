@@ -42,7 +42,7 @@ def make_preprocessing (type):
     if not os.path.exists(output):
         os.mkdir(output)
     if type == "mask":
-        arguments = ' --logtostder include_masks --train_image_dir '+ Train_images +' --val_image_dir '\
+        arguments = ' --logtostder --include_masks --train_image_dir '+ Train_images +' --val_image_dir '\
             + Val_img +' --test_image_dir '+ Test_Images + ' --train_annotations_file '+ Train_ann + \
                 ' --val_annotations_file ' + Val_ann + ' --testdev_annotations_file '+ Test_ann + \
                     ' --output_dir '+ output

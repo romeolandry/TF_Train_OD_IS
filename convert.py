@@ -69,7 +69,7 @@ def main(args):
                         input_size=args.input_size,
                         val_data_dir=args.input_data_dir,
                         annotation_file=args.annotation_file,
-                        calibraion_data_dir= args.calibration_data_dir,
+                        calibration_data_dir= args.calibration_data_dir,
                         batch_size= args.batch_size,
                         model_input_type= args.input_type,
                         build_engine = args.build_eng)

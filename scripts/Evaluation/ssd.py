@@ -455,7 +455,10 @@ class Evaluation:
             
 
             total_image =  total_image + len(images)
-            print('average time pro batch: {:4.1f} ms'.format(elapsed_time[-len(images)] * 1000 ))
+            if batch_count >2:
+                print('average time pro batch: {:4.1f} ms'.format(elapsed_time[-len(images)] * 1000 ))
+            else:
+                print('Warmup...')
             print(f"Total evaluate {total_image} \t")
 
         ## save predicted annotation 

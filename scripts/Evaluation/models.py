@@ -237,7 +237,7 @@ class Convertor:
         Freeze Tensorflow savedModel for Inference 
     '''
     
-    def freeze_savedModel(self, image_size=640):
+    def freeze_savedModel_ssd(self):
 
         infer = self.__model.signatures["serving_default"]
       
@@ -246,7 +246,7 @@ class Convertor:
         full_model = tf.function(lambda input_tensor: infer(input_tensor))
         
         full_model = full_model.get_concrete_function(
-                            input_tensor=tf.TensorSpec(shape=[1, image_size, image_size, 3], 
+                            input_tensor=tf.TensorSpec(shape=[1, self.__input_size, self.__input_size, 3], 
                                                         dtype=np.uint8)
                                                         ) 
         frozen_func = convert_variables_to_constants_v2(full_model)
@@ -304,4 +304,73 @@ class Convertor:
                           logdir=model_dir,
                           name="frozen_graph.pb",
                           as_text=False)
-        click.echo(click.style(f"\n model was freezed and saved to {model_dir}\n", bold=True, fg='green'))      
+        click.echo(click.style(f"\n model was freezed and saved to {model_dir}\n", bold=True, fg='green'))
+
+    def freeze_savedModel_mask(self):
+    
+        infer = self.__model.signatures["serving_default"]
+      
+        # convert the model to ConcreteFunction.
+        # since tf.2.x doesn't session any more.
+        full_model = tf.function(lambda input_tensor: infer(input_tensor))
+        
+        full_model = full_model.get_concrete_function(
+                            input_tensor=tf.TensorSpec(shape=[1, self.__input_size, self.__input_size, 3], 
+                                                        dtype=np.uint8)
+                                                        ) 
+        frozen_func = convert_variables_to_constants_v2(full_model)
+        frozen_func.graph.as_graph_def()
+
+        
+        input_layers = [x.name for x in frozen_func.inputs]
+        outputs = [x.name for x in frozen_func.outputs]
+        
+        # Save specification
+        model_dir = os.path.join(self.__path_to_model,'../forzen_model')
+        
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        
+        with open(os.path.join(model_dir,'about.txt'), "w+") as f:
+            f.write("*****************************Original input signature *************************** \n")
+            f.write("\n input \n")
+            for value in input_layers:
+                f.write("\n Original output signature \n")
+            for key,value in infer.structured_outputs.items():
+                f.write(f"\n {key} ={value}\n")
+            
+            f.write("\n *************************** freezed signature ********************* \n")
+            f.write("\n input \n")
+            for value in input_layers:
+                f.write(f"\n {value}\n")
+            f.write("\n output \n")
+            for value in outputs:
+                if  value == "Identity:0":
+                    f.write(f"\n detection_anchor_indices ==> {value}  \n")
+                if  value == "Identity_1:0":
+                    f.write(f"\n detection_boxes ==> {value}  \n")
+
+                if  value == "Identity_2:0":
+                    f.write(f"\n detection_classes ==> {value}  \n")
+
+                if  value == "Identity_3:0":
+                    f.write(f"\n detection_multiclass_scores ==> {value}  \n")
+
+                if  value == "Identity_4:0":
+                    f.write(f"\n detection_scores ==> {value}  \n")
+
+                if  value == "Identity_5:0":
+                    f.write(f"\n num_detections ==> {value}  \n") 
+
+                if  value == "Identity_6:0":
+                    f.write(f"\n raw_detection_boxes ==> {value}  \n")
+
+                if  value == "Identity_7:0":
+                    f.write(f"\n raw_detection_scores ==> {value}  \n")
+
+        # Save the freezed Graph
+        tf.io.write_graph(graph_or_graph_def=frozen_func.graph,
+                          logdir=model_dir,
+                          name="frozen_graph.pb",
+                          as_text=False)
+        click.echo(click.style(f"\n model was freezed and saved to {model_dir}\n", bold=True, fg='green'))           

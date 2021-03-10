@@ -16,6 +16,9 @@ parser.add_argument("-t","--type", choices=['tf_trt','freeze'],
     required=True,
     help=" convert to tf frozen graph(freeze) or tf-trt for inference")
 
+parser.add_argument("--mask", default=False, action="store_true",
+    help=" to freeze mask")
+
 parser.add_argument("-p","--path",type=str,
     required=True,
     help="path to savedModel to convert")
@@ -76,8 +79,10 @@ def main(args):
     if args.type =="freeze":
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow inference model  \n", bold=True, fg='green'))
         # sys.stderr.write("Not available \n")
-        
-        con.freeze_savedModel(image_size=args.input_size)
+        if args.mask:
+            con.freeze_savedModel_mask()
+        else:
+            con.freeze_savedModel()
         
     else:
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow-TensorRT model \n", bold=True, fg='green'))

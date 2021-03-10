@@ -36,7 +36,7 @@ you should see
     [       OK ] ModelBuilderTF2Test.test_invalid_first_stage_nms_iou_threshold
     [ RUN      ] ModelBuilderTF2Test.test_invalid_model_config_proto
     [       OK ] ModelBuilderTF2Test.test_invalid_model_config_proto
-    [ RUN      ] ModelBuilderTF2Test.test_invalid_second_stage_batch_size
+    [ RUN      ] ModelBuilderTF2Test.test_invalid_image_size=args.input_sizesecond_stage_batch_size
     [       OK ] ModelBuilderTF2Test.test_invalid_second_stage_batch_size
     [ RUN      ] ModelBuilderTF2Test.test_session
     [  SKIPPED ] ModelBuilderTF2Test.test_session
@@ -192,6 +192,7 @@ FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (
 - `--input_size` Input size of image for eventual calibration. In case to convert to INT8
 - `--batch_size `batch-size for the  calibrate function. eg:1.
 - `--build_eng` Boolean if True the engine file for each Subgraph bigger than min_seg_size will builded
+- `--mask` Boolean True to freeze mask
 
 ```shell
 $ python convert.py -t tf_trt -p path_to_saved_model_dir --batch_size 1 

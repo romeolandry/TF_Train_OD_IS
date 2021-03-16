@@ -17,6 +17,7 @@ sys.path.append(os.path.abspath(os.curdir))
 from configs.run_config import *
 #from scripts.api_scrpit import *
 from scripts.Evaluation.utils import *
+from scripts.Evaluation.metric import *
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -104,7 +105,7 @@ class Inference :
         self.__images_name_prefix = model_name
         self.__model_image_size = model_image_size
         self.__threshold = threshold
-
+        self.__categories = read_label_txt(PATH_TO_LABELS_TEXT)
         ## create category index for coco 
         # self.__category_index = label_map_util.create_category_index_from_labelmap(self.__path_to_labels,use_display_name=True)
 
@@ -117,11 +118,11 @@ class Inference :
         width = image.shape[0]
         height = image.shape[1]
 
-        categories = read_label_txt(PATH_TO_LABELS_TEXT)
+        
 
         lastbbox= None
         # get class text
-        label = categories[classId]
+        label = self.__categories[classId]
         # get class text
         scored_label = label + ' ' + format(score * 100, '.2f')+ '%'
         x = bbox[1] * height
@@ -249,7 +250,6 @@ class Inference :
             sess.graph.as_default()
             start =time.time()
             tf.import_graph_def(self.__model, name='')
-
             frozen_func = wrap_frozen_graph(graph_def=self.__model,
                                             inputs=inputs,
                                             outputs=outputs,
@@ -292,92 +292,6 @@ class Inference :
                         img = self. visualize_bbox(img,score,bbox,classId)
                 cv.imshow(self.__images_name_prefix,img)
                 cv.waitKey(1)
-   
-    '''
-        Using SSD-resnet50 v2  to apply inference on a list of image
-        The image will be progressively load and inference
-        the output images will be save in to 'images_inferences'
-    '''
-    ''' def ssd_inference_webcam(self):
-
-        cap = cv2.VideoCapture(0)
-
-        while True:
-            # Read frame from camera
-            ret, image_np = cap.read()
-
-            # expand image to have shape :[1, None, None,3]
-            image_np_expanded = np.expand_dims(image_np, axis=0)
-            input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0),dtype=tf.float32)
-
-            detections, predictions_dict, shapes = self.detect_fn(input_tensor)
-
-            label_id_offset = 1
-            image_np_with_detections = image_np.copy()
-
-            viz_utils.visualize_boxes_and_labels_on_image_array(image_np_with_detections,
-                                                                detections['detection_boxes'][0].numpy(),
-                                                                (detections['detection_classes'][0].numpy() + label_id_offset).astype(int),
-                                                                detections['detection_scores'][0].numpy(),
-                                                                self.__category_index,
-                                                                use_normalized_coordinates=True,
-                                                                max_boxes_to_draw=200,
-                                                                min_score_thresh=.30,
-                                                                agnostic_mode=False)
-
-
-            # Display output
-            cv2.imshow('object detection', cv2.resize(image_np_with_detections, (800, 600)))
-
-            if cv2.waitKey(25) & 0xFF == ord('q'):
-                break
-        
-        cap.release()
-        cv2.destroyAllWindows()
-    '''
-
-'''bind mask and Box'''
-def transform_detection_to_cocoresult(image_id,
-                                      image_width,
-                                      image_height,
-                                      boxes,
-                                      classes,
-                                      scores):
-    
-    assert boxes.shape[0] == classes.shape[0] == scores.shape[0]
-    if boxes is None:
-        return []
-
-    results = []    
-    for i in range(boxes.shape[0]):
-        classId = classes[i]
-        score = scores[i]
-        bbox = np.around(boxes[i],1)
-
-        y1,x1,y2,x2 = list(bbox)
-
-        # normalized coco coordinate 
-        #bbox = bbox * np.array([w,h,w,h])
-        # [ymin,xmin,ymax,xmax] [bbox[1],bbox[0],boxW,boxH]
-        #boxW = bbox[3]-bbox[1] + 1
-        #boxH = bbox[2]-bbox[0] + 1
-        #[xmin,ymin,xmax,ymax] [bbox[0],bbox[1],boxW,boxH]
-        #boxW = bbox[2]-bbox[0] + 1
-        #boxH = bbox[3]-bbox[1] + 1
-        x1 = x1 * image_width
-        y1 = y1 * image_height
-        width = (x2-x1)* image_width
-        height = (y2-y1)* image_height
-
-        
-        result = {
-            "image_id":image_id,
-            "category_id": int(classId),
-            "bbox":[x1,y1,width,height],
-            "score": float(score)
-        }
-        results.append(result)
-    return results
 
 
 class Evaluation:
@@ -386,37 +300,56 @@ class Evaluation:
                  model,
                  model_name,
                  path_to_annotations,
-                 input_size,
-                 batch_size=32):
+                 batch_size=32,
+                 score_threshold=0.25,
+                 iou_threshold=.5,
+                 validation_split=1):
         self.__path_to_images = path_to_images
         self.__model = model
         self.__model_name = model_name
         self.__path_to_annotations = path_to_annotations
         self.__batch_size = batch_size
-        self.__input_size = input_size
+        self.__categories = read_label_txt(PATH_TO_LABELS_TEXT)
+        self.__score_threshold = score_threshold
+        self.__iou_threshold = iou_threshold
+        self.__validation_split = validation_split
 
     """
         Run detection on each image an write result into Json file
+        Return:
+        results: list result in to coco formmat
+        eval_imgIds: list of evaluated imageIds
+        results_map: list content class_name IoU and match(True for TP and False for FP)
     """
     def generate_results_ssd_compute_map(self):
         elapsed_time = []
         results = []
-        elapsed_time = []
+        results_for_map = []
+        eval_imgIds = []
         
         total_image = 0
         batch_count = 0
-        coco = COCO(annotation_file=self.__path_to_annotations)
+        cocoGt = COCO(annotation_file=self.__path_to_annotations)
 
         for images in load_img_from_folder(self.__path_to_images,
-                                           validation_split=1,
+                                           validation_split=self.__validation_split,
                                            batch_size=self.__batch_size,
                                            mAP=True,
-                                           input_size=self.__input_size):
+                                           input_size=None):
             # convert images to be a tensor
             batch_count = batch_count + 1
-            print(f"run evaluation for batch {batch_count}. \t")
+            print(f"\n run evaluation for batch {batch_count}\n")
 
-            for item in images:                
+            for item in images:
+
+                coco_img = cocoGt.imgs[item['imageId']]
+                img_width= coco_img['width']
+                img_height = coco_img['height']
+                # get Annotation Ids for the ImageId
+                annotationIds = cocoGt.getAnnIds(coco_img['id'])
+                # get all annatotion corresponded to this annotation Ids. get bbox segments..
+                annotations = cocoGt.loadAnns(annotationIds)
+
                 try:
                     input_tensort = tf.convert_to_tensor(item['np_image'])
                     input_tensort = input_tensort[tf.newaxis,...]
@@ -424,113 +357,82 @@ class Evaluation:
                     start_time = time.time()
                     detections = self.__model(input_tensort)
                     end_time = time.time()
-
-                    num_detections = int(detections.pop('num_detections'))
-                    detections = {key: value[0, :num_detections].numpy()
-                                for key, value in detections.items()}
-                    detections['num_detections'] = num_detections 
-                    # convert detection  classes to  numpy int
-                    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
-                    
                 except :
                     continue
                 if batch_count >2:
                     elapsed_time = np.append(elapsed_time, end_time - start_time)
 
-                coco_img = coco.imgs[item['imageId']]
-                img_width= coco_img['width']
-                img_height = coco_img['height']
-                
+                num_detections = int(detections.pop('num_detections'))
+                detections = {key: value[0, :num_detections].numpy()
+                                for key, value in detections.items()}
+                detections['num_detections'] = num_detections 
+                # convert detection  classes to  numpy int
+                detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+                                
                 boxes = detections['detection_boxes']
                 classes = detections['detection_classes']
                 scores = detections['detection_scores']
+                if boxes[0] is not None:
+                    # for  metric computed with COCOAPi
+                    result_coco_api = transform_detection_bbox_to_cocoresult(image_id=item['imageId'],
+                                                            image_width=img_width,
+                                                            image_height=img_height,
+                                                            boxes=boxes,
+                                                            classes=classes,
+                                                            scores=scores)
+                    results.extend(result_coco_api)
+                    eval_imgIds.append(item['imageId'])
 
-                result = transform_detection_to_cocoresult(image_id=item['imageId'],
-                                                           image_width=img_width,
-                                                           image_height=img_height,
-                                                           boxes=boxes,
-                                                           classes=classes,
-                                                           scores=scores)
-                results.extend(result)
+                    # for metric computed without COCOAPi
+                    result_simple = compute_iou_of_prediction_bbox(image_width=img_width,
+                                                                   image_height=img_height,
+                                                                   boxes=boxes,
+                                                                   classes= classes,
+                                                                   scores=scores,
+                                                                   coco_annatotions= annotations,
+                                                                   score_threshold = self.__score_threshold,
+                                                                   iou_threshold =self.__iou_threshold,
+                                                                   categories = self.__categories)
+
+                    results_for_map.extend(result_simple)
             
 
             total_image =  total_image + len(images)
             if batch_count >2:
-                print('average time pro batch: {:4.1f} ms'.format(elapsed_time[-len(images)] * 1000 ))
+                print('time pro batch: {:4.1f} s'.format((sum(elapsed_time[-self.__batch_size:]))))
             else:
                 print('Warmup...')
-            print(f"Total evaluate {total_image} \t")
-
-        ## save predicted annotation 
-        print(f"save results in to json!")
-        save_performance('prediction', json_data=results, file_name= self.__model_name +'.json')
+            print(f"Total evaluate {total_image}")
         
-
-        print(f'total time {(sum(elapsed_time)/len(elapsed_time)*1000)}')
-        print('After all Evaluation FPS {:4.1f} ms '.format((sum(elapsed_time)/len(elapsed_time)*1000)))
-        cocoDt = coco.loadRes(results)
+        print(f'total time sum {sum(elapsed_time)}')
+        print(f'total time len {len(elapsed_time)}')
+        print('After all Evaluation FPS {:4.1f} first methode '.format((total_image/sum(elapsed_time))))
+        print('After all Evaluation FPS {:4.1f} second methode '.format((sum(elapsed_time)/len(elapsed_time))))
         
-        imgIds = sorted(coco.getImgIds())
+        return results,eval_imgIds, results_for_map
+    
+    def COCO_process_mAP(self, results, evaluated_imageIds):
+        print("*"*50)
+        print("Compute metric with COCOApi")
+        print("*"*50)
+        cocoGt = COCO(self.__path_to_annotations)
+        cocoDt = cocoGt.loadRes(results)
 
-        click.echo(click.style(f"\n compute  bbox \n", bold=True, fg='green'))
-        cocoEval = COCOeval(coco, cocoDt, "bbox")
-        cocoEval.params.imgIds = imgIds
+        cocoEval = COCOeval(cocoGt, cocoDt, "bbox")
+        
+        cocoEval.params.imgIds = sorted(evaluated_imageIds) 
 
         cocoEval.evaluate()        
         cocoEval.accumulate()
         cocoEval.summarize()
 
         print(cocoEval.stats[0])
-    
-    def validate_model_coco(self):
-        elapsed_time = []
-        results = {}
-        predictions = {}
-        elapsed_time = []
-        
-        total_image = 0
-        batch_count = 0
 
-        input_type = self.__model.inputs[0].dtype
+    def mAP_without_COCO_API(self,results, per_class):
 
-        dataset, images_ids = load_img_from_folder_update(path_folder=self.__path_to_images,
-                                                          annotations_path=self.__path_to_annotations,
-                                                          batch_size=self.__batch_size,
-                                                          input_size=self.__input_size,
-                                                          dtype= input_type)
-        for i, batch_image in enumerate(dataset):
-            batch_count = batch_count + 1
-            print(f"run evaluation for batch {i}. \t")
-            print(len(batch_image))
-
-            start_time = time.time()
-            detections = self.__model(batch_image)
-            end_time = time.time()
-            print(detections)
-            exit()
-            for image in batch_image:
-                image = image[tf.newaxis,...]
-                start_time = time.time()
-                detections = self.__model(image)
-                end_time = time.time()
-                print(detections)
-            
-            break
-        
-
-            
-    
-    def COCO_process_mAP(self,type):
-        cocoGt = COCO(self.__path_to_annotations)
-        cocoDt = cocoGt.loadRes(os.path.join(PATH_PERFORMANCE_INFER,self.__model_name + '.json'))
-        
-        imgIds = sorted(cocoGt.getImgIds())
-
-        cocoEval = COCOeval(cocoGt, cocoDt, type)
-        
-        cocoEval.params.imgIds = imgIds
-
-        cocoEval.evaluate()
-        cocoEval.accumulate()
-
-        print(cocoEval.summarize())
+        print("*"*50)
+        print(f"Compute metric without COCOApi per class : {per_class}")
+        print("*"*50)
+        # computer mAP
+        ap_dictionary = get_map(results, per_class=per_class)
+        print(f"{ap_dictionary}")

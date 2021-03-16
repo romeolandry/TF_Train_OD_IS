@@ -206,6 +206,9 @@ Evaluate a saved model
 - `-b` or `--batch_size` to number of to proceed at one time.
 - `-p or --path_to_images` to set the directory contenting images the default directory  is the `val2017`.
 - `-a` or `--annotation` to set path to annotation. the default is the path `instances_val2017.json`.
+- `-s` or `--score_threshold` to set witch prediction should be considerate
+- `iou` to set Threshold for **True Positive** or **False Positive** for computation of Average Precision
+- `--data_size`  to set witch size of Validation dataset should be use 1: for all 0.5 for half
 
 ```shell
 $ python [ssd_eval.py/mask_eval.py]  --model path_to_saved_model_dir --batch_size 100

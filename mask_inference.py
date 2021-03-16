@@ -95,7 +95,7 @@ def main(args):
 
         click.echo(click.style(f"\n Start inference from {args.path_to_images} ... \n", bold=True, fg='green'))    
 
-        infer.mask_inference_image()
+        infer.mask_inference_image_cv()
        
 
 if __name__ == "__main__":

@@ -14,6 +14,14 @@ https://python.hotexamples.com/examples/pycocotools.cocoeval/COCOeval/-/python-c
 ## Evaluate model 
 [ jkjung-avt /tensorrt_demos ](https://github.com/jkjung-avt/tensorrt_demos)
 
+[benchmark_model](https://github.com/IntelAI/models).
+
+Metric IoU berechnet mas [segmententaion](https://gist.github.com/ilmonteux/8340df952722f3a1030a7d937e701b5a) and [bbox](https://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/)
+
+
+
+
+
 ## Convert
 
 - Tensorflow Object detection API2 used with tensorflow 2.x doesn't freeze model. [Exporting a trained model for inference (Tensorflow 2) #9617](https://github.com/tensorflow/models/issues/9617)

@@ -4,12 +4,6 @@ import sys
 import click
 
 
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-
-
 from configs.run_config import *
 from scripts.Evaluation.utils import *
 from scripts.Evaluation.models  import Model
@@ -32,16 +26,23 @@ parser.add_argument("-b","--batch_size", type= int,
     default=32 ,
     help=" images pro Batch")
 
-parser.add_argument("-s","--input_size", type=int,
-    default=640,
-    help=" Input model size")
+parser.add_argument("-s","--score_threshold", type= float,
+    default=SCORE_THRESHOLD ,
+    help="min score to considerate as prediction")
+
+parser.add_argument("--iou", type= float,
+    default=IOU_THRESHOLD ,
+    help=" IoU to differentiate True positive and false positive prediction")
+
+parser.add_argument("--data_size", type= float,
+    default=DATA_SIZE_VALIDATION ,
+    help=" Percentage of validation data to use")
 
 
 def main(args):
     # image size for input model
     batch_size = args.batch_size
     model = Model(args.model)
-    input_size = args.input_size
 
     # Load model from saved model .pb
     detection_model, model_name = model.Load_savedModel_model()
@@ -52,12 +53,16 @@ def main(args):
                        model_name=model_name,
                        path_to_annotations=args.annotation,
                        batch_size=batch_size,
-                       input_size= input_size)
+                       score_threshold=args.score_threshold,
+                       iou_threshold=args.iou,
+                       validation_split=args.data_size)
 
     click.echo(click.style(f"\n Start Evaluation \n", bold=True, fg='green'))    
 
-    eval_ssd.generate_results_ssd_compute_map()
-    #eval_ssd.validate_model_coco()    
+    results_coco, evaluatedIds, results_IoU = eval_ssd.generate_results_ssd_compute_map()
+    eval_ssd.COCO_process_mAP(results_coco, evaluatedIds)
+    eval_ssd.mAP_without_COCO_API(results_IoU, per_class=True)
+    eval_ssd.mAP_without_COCO_API(results_IoU, per_class=False)
            
 
 if __name__ == "__main__":

@@ -84,7 +84,7 @@ def load_img_from_folder(path_folder,
                         validation_split=0.1,
                         mAP = False,
                         batch_size= 32,
-                        input_size=640):
+                        input_size=None):
     
     img_list = []
     batch_number = 0
@@ -98,7 +98,9 @@ def load_img_from_folder(path_folder,
         sys.stderr.write("Image folder is not a directory")
 
     for filename in glob.glob(path_folder + '/*.jpg'):
-        img = Image.open(filename).resize((input_size,input_size))
+        img = Image.open(filename)
+        if input_size is not None:
+            img = img.resize((input_size,input_size))
         if(count > total_file):
             break
 
@@ -108,7 +110,8 @@ def load_img_from_folder(path_folder,
             # get Id of image
             imageId = int(filename.split('.')[0].split('/')[-1]) 
             img_list.append({'imageId':imageId,
-                                'np_image':np.array(img)})
+                             'np_image':np.array(img),
+                             'file_path':filename})
         
         if (len(img_list) and (len(img_list) % batch_size) == 0):
             yield img_list[ndx:min(ndx + batch_size,len(img_list))]
@@ -153,35 +156,7 @@ def load_img_from_folder_for_infer(path_folder,
         return img_list
 
 
-''' def predict_and_benchmark_throughput(batched_input, infer, N_warmup_run=50, N_run=1000):
-    elapsed_time = []
-    all_preds = []
-    batch_size = batched_input.shape[0]
 
-    for i in range(N_warmup_run):
-        labeling = infer(batched_input)
-        preds = labeling['predictions'].numpy()
-
-    for i in range(N_run):
-        start_time = time.time()
-
-        labeling = infer(batched_input)
-
-        preds = labeling['predictions'].numpy()
-
-        end_time = time.time()
-
-        elapsed_time = np.append(elapsed_time, end_time - start_time)
-        
-        all_preds.append(preds)
-
-        if i % 50 == 0:
-
-            print('Steps {}-{} average: {:4.1f}ms'.format(i, i+50, (elapsed_time[-50:].mean()) * 1000))
-
-    print('Throughput: {:.0f} images/s'.format(N_run * batch_size / elapsed_time.sum()))
-    totall_time = N_run * batch_size / elapsed_time.sum()
-    return all_preds, totall_time '''
 
 def batch_input (batch_size=8, input_size=[299,299,3], path_to_test_img_dir=''):
 
@@ -241,3 +216,71 @@ def set_input_camera(camera_input,camera_width,camera_height):
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,1080)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT,700)
     return cap
+
+
+def draw_iou(image, ground_truth, pred_bbox, iou):
+    cv2.rectangle(image, (int(ground_truth[0]), int(ground_truth[1])), (int(ground_truth[2]), int(ground_truth[3])), (125, 255, 51), thickness=2)
+    cv2.putText(image, " ground truth",(int(ground_truth[0])+10,int(ground_truth[1])-5),cv2.FONT_HERSHEY_SIMPLEX, 0.6, (125, 255, 51), 2)
+                        
+    cv2.rectangle(image, (int(pred_bbox[0]), int(pred_bbox[1])), (int(pred_bbox[2]), int(pred_bbox[3])), (0, 0, 255), thickness=2)
+    cv2.putText(image, " predicted IUO = " + str(iou) ,(int(pred_bbox[2]) -10,int(pred_bbox[3])+ 20),cv2.FONT_HERSHEY_PLAIN, 0.9, (0, 0, 255), 1)
+
+    return image
+
+def draw_iou_mask(image, ground_truth_mask,pred_mask,iou):
+    pass
+
+"""
+    Post preprocessing mask
+"""
+def postprocessing(img, boxes,classes, scores,mask, th=0.1):
+    
+    boxes = boxes.numpy()
+    masks = masks.numpy()
+    scores = scores.numpy()
+    classes = classes.numpy()
+
+    
+    assert boxes.shape[0] == masks.shape[0] == classes.shape[0] == scores.shape[0]
+    h,w= img.shape[:2]
+
+    categories = read_label_txt(PATH_TO_LABELS_TEXT)
+
+    img = img.copy()
+
+    for i in range(boxes.shape[0]):
+        classId = classes[i]
+        score = scores[i]
+        # get class text
+        label = categories[classId]
+        # get class text
+        scored_label = label + ' ' + format(score * 100, '.2f')+ '%'
+
+        if not np.any(boxes[i]):
+            # skip instance that has no bbox
+            continue
+
+        font = cv.FONT_HERSHEY_COMPLEX
+
+        box = boxes[i]* np.array([w,h,w,h])
+        (startY,startX,endY,endX) = box,astype("int") # top,left right, bottom
+
+        cv.rectangle(img, (startX, startX), (int(endY), int(endX)), (125, 255, 51), thickness=2)
+        cv.putText(img, scored_label, (int(startX)+10, int(startX)+20),font, 1, (0, 255, 0), thickness=1)
+
+        boxW = endX - startX
+        boxH = endY - startY
+
+        mask = cv.resize(masks[i], (boxW, boxH), interpolation=cv.INTER_NEAREST)
+
+        mask = (mask > .05)
+
+        roi = img[startY:endY, startX:endX]
+        
+
+        roi = [mask]
+
+        blended = ((0.4 * (255,0,0)) + (0.6 * roi)).astype("uint8")
+
+        roi = img[startY:endY, startX:endX][mask]= blended
+    return img

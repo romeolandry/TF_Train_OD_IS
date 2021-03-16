@@ -3,13 +3,6 @@ import os
 import sys
 import click
 
-
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-
-
 from configs.run_config import *
 from scripts.Evaluation.utils import *
 from scripts.Evaluation.models  import Model
@@ -28,14 +21,24 @@ parser.add_argument("-p","--path_to_images", default=PATH_IMAGES +'/val2017',
 parser.add_argument("-a","--annotation", default=PATH_ANNOTATIONS +'/instances_val2017.json' ,
     help="the to label mab corresponding to model")
 
-parser.add_argument("--batch_size", default=32 ,
+parser.add_argument("-b","--batch_size", default=32 ,type=int,
     help=" images pro Batch")
+
+parser.add_argument("-s","--score_threshold", type= float,
+    default=SCORE_THRESHOLD ,
+    help="min score to considerate as prediction")
+
+parser.add_argument("--iou", type= float,
+    default=IOU_THRESHOLD ,
+    help=" IoU to differentiate True positive and false positive prediction")
+
+parser.add_argument("--data_size", type= float,
+    default=DATA_SIZE_VALIDATION ,
+    help=" Percentage of validation data to use")
 
 
 def main(args):
     # image size for input model
-    
-    batch_size = int(args.batch_size)
     model = Model(args.model)
 
     # Load model from savedModel_detection_results_mask_moodel .pb
@@ -45,11 +48,18 @@ def main(args):
                        model=detection_model,
                        model_name=model_name,
                        path_to_annotations=args.annotation,
-                       batch_size=batch_size)
+                       batch_size=args.batch_size,
+                       score_threshold=args.score_threshold,
+                       iou_threshold=args.iou,
+                       validation_split=args.data_size
+                       )
 
     click.echo(click.style(f"\n Start Evaluation \n", bold=True, fg='green'))    
 
-    eval_mask.generate_results_mask_compute_map()     
+    results_coco, evaluatedIds, results_IoU = eval_mask.generate_results_mask_compute_map()
+    eval_mask.COCO_process_mAP(results_coco, evaluatedIds)
+    eval_mask.mAP_without_COCO_API(results_IoU, per_class=True)
+    eval_mask.mAP_without_COCO_API(results_IoU, per_class=False)    
          
 
 if __name__ == "__main__":

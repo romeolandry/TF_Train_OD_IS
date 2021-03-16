@@ -20,14 +20,12 @@ from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as viz_utils
 
 from configs.run_config import *
-#from scripts.api_scrpit import *
+from scripts.Evaluation.metric import *
 from scripts.Evaluation.utils import *
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from pycocotools import mask as maskUtils
-
-from scripts.Evaluation.utils import read_label_txt, set_input_camera
 
 # set input output name
 inputs = ["input_tensor:0"]
@@ -54,8 +52,6 @@ def wrap_frozen_graph(graph_def, inputs, outputs, print_graph=False):
     return wrapped_import.prune(
         tf.nest.map_structure(import_graph.as_graph_element, inputs),
         tf.nest.map_structure(import_graph.as_graph_element, outputs))
-
-
 
 class Inference :
     def __init__(self,
@@ -92,27 +88,37 @@ class Inference :
         scored_label = label + ' ' + format(score * 100, '.2f')+ '%'
 
         bbox = bbox * np.array([width, height, width, height])
-        y, x, bottom, right = bbox.astype("int")
+        startX, startY, endX, endY = bbox.astype("int")
+        font = cv.FONT_HERSHEY_COMPLEX
+
         # mask
-        mask = cv.resize(mask,(width,height),interpolation=cv.INTER_NEAREST)
+        boxW = endX - startX
+        boxH = endY -endX
+        mask = cv.resize(mask,(boxW,boxH),interpolation=cv.INTER_NEAREST)
+
         mask = (mask > self.__threshold)
         # extract ROI of image
-        roi =  img[y:bottom, x:right]
+        roi =  img[startY:endY, startX:endX]
+
+        roi = cv.resize(roi,(mask.shape[1], mask.shape[0]))
 
         print(f"mask: {mask.shape}")
 
         print(f"roi: {roi.shape}")
 
+        print(f"image: {image.shape}")
+        
         roi = roi[mask]
 
-        blended = ((0.4 * (255,0,255)) + (0.6 * roi)).astype("uint8")
-        img[y:bottom, x:right][mask] = blended
+        print(f"roi: {roi}")
+
+        blended = (((255,0,255)) + (roi)).astype("uint8")
+        img[startY:endY, startX:endX][mask] = blended
 
         font = cv.FONT_HERSHEY_COMPLEX
 
-        cv.rectangle(img, (int(x), int(y)), (int(right), int(bottom)), (125, 255, 51), thickness=2)
-
-        cv.putText(img, scored_label, (int(x)+10, int(y)+20),font, 1, (0, 255, 0), thickness=1)
+        cv.rectangle(img, (startX, startY), (int(endX), int(endY)), (125, 255, 51), thickness=2)
+        cv.putText(img, scored_label, (int(startX)+10, int(startY)+20),font, 1, (0, 255, 0), thickness=1)
 
         return img
 
@@ -123,8 +129,8 @@ class Inference :
         # read and Preprocess image 
         img = cv.imread(self.__path_to_images)
         
-        image_np = cv.resize(img, (self.__model_image_size[0], self.__model_image_size[1]))
-        image_np = image_np[:, :, [2, 1, 0]]  # BGR2RGB
+        #image_np = cv.resize(img, (self.__model_image_size[0], self.__model_image_size[1]))
+        image_np = img[:, :, [2, 1, 0]]  # BGR2RGB
         # read frozen Graph       
         elapsed_time = 0
 
@@ -136,12 +142,12 @@ class Inference :
         # Apply inference 
         detections = self.__model(input_tensor)
                
-        # Visualize detected bounding boxes.        
-        for i in range(detections['num_detections']):
-            classId = detections['detection_classes'][i]
-            score = detections['detection_scores'][i]
-            bbox = [float(v) for v in detections['detection_boxes'][i]]
-            mask = [float(v) for v in detections['detection_masks'][i]]
+        # Visualize detected bounding boxes.   
+        for i in range(int(detections['num_detections'][0])):
+            classId = detections['detection_classes'][0][i].numpy()
+            score = detections['detection_scores'][0][i].numpy()
+            bbox = detections['detection_boxes'][0][i].numpy()
+            mask = detections['detection_masks'][0][i].numpy()
 
 
             if score > self.__threshold:
@@ -360,7 +366,7 @@ class Inference :
                 # Reframe the the bbox mask to the image size.
 
                 detection_masks_reframed = utils_ops.reframe_box_masks_to_image_masks(detection_masks, detection_boxes,image_np.shape[0], image_np.shape[1])
-                detection_masks_reframed = tf.cast(detection_masks_reframed > 0.5,tf.uint8)
+                detectihon_masks_reframed = tf.cast(detection_masks_reframed > 0.5,tf.uint8)
                 detections['detection_masks_reframed'] = detection_masks_reframed.numpy()
 
             viz_utils.visualize_boxes_and_labels_on_image_array(image_np_with_detections,
@@ -383,104 +389,7 @@ class Inference :
                 break
         
         cap.release()
-        cv2.destroyAllWindows()
-
-
-'''bind mask and Box'''
-def transform_detection_to_cocoresult(image,boxes,masks,classes,scores):
-    
-    boxes = boxes.numpy()
-    masks = masks.numpy()
-    scores = scores.numpy()
-    classes = classes.numpy()
-    
-    assert boxes.shape[0] == masks.shape[0] == classes.shape[0] == scores.shape[0]
-
-    h,w = image['np_image'].shape[:2]
-
-    if boxes is None:
-        return []
-
-    results = []
-
-    
-    for i in range(boxes.shape[0]):
-        classId = classes[i]
-        score = scores[i]
-        bbox = boxes[i]
-        
-        # normalize 
-        bbox = bbox * np.array([w,h,w,h])
-        #boxW = bbox[3]-bbox[1]
-        #boxH = bbox[2]-bbox[0]
-        mask = cv.resize(masks[i], (w,h), interpolation=cv.INTER_NEAREST)
-        mask = np.uint8(masks[i])    
-        
-        result = {
-            'image_id':image['imageId'],
-            'category_id': int(classId),
-            'bbox':[bbox[0],bbox[1],bbox[2]-bbox[0],bbox[3]-bbox[1]],
-            'score': score,
-            'segmentation': maskUtils.encode(np.asfortranarray(mask))
-        }
-        results.append(result)
-    return results      
-
-"""
-    Post preprocessing mask
-"""
-def postprocessing(img, boxes,classes, scores,mask, th=0.1):
-    
-    boxes = boxes.numpy()
-    masks = masks.numpy()
-    scores = scores.numpy()
-    classes = classes.numpy()
-
-    
-    assert boxes.shape[0] == masks.shape[0] == classes.shape[0] == scores.shape[0]
-    h,w= img.shape[:2]
-
-    categories = read_label_txt(PATH_TO_LABELS_TEXT)
-
-    img = img.copy()
-
-    for i in range(boxes.shape[0]):
-        classId = classes[i]
-        score = scores[i]
-        # get class text
-        label = categories[classId]
-        # get class text
-        scored_label = label + ' ' + format(score * 100, '.2f')+ '%'
-
-        if not np.any(boxes[i]):
-            # skip instance that has no bbox
-            continue
-
-        font = cv.FONT_HERSHEY_COMPLEX
-
-        box = boxes[i]* np.array([w,h,w,h])
-        (startY,startX,endY,endX) = box,astype("int") # top,left right, bottom
-
-        cv.rectangle(img, (startX, startX), (int(endY), int(endX)), (125, 255, 51), thickness=2)
-        cv.putText(img, scored_label, (int(startX)+10, int(startX)+20),font, 1, (0, 255, 0), thickness=1)
-
-        boxW = endX - startX
-        boxH = endY - startY
-
-        mask = cv.resize(masks[i], (boxW, boxH), interpolation=cv.INTER_NEAREST)
-
-        mask = (mask > .05)
-
-        roi = img[startY:endY, startX:endX]
-        
-
-        roi = [mask]
-
-        blended = ((0.4 * (255,0,0)) + (0.6 * roi)).astype("uint8")
-
-        roi = img[startY:endY, startX:endX][mask]= blended
-    return img
-    
+        cv2.destroyAllWindows()      
 
 class Evaluation:
     def __init__(self,
@@ -488,27 +397,56 @@ class Evaluation:
                  model,
                  model_name,
                  path_to_annotations,
-                 batch_size=32):
+                 batch_size,
+                 score_threshold=0.25,
+                 iou_threshold=.5,
+                 validation_split=1):
         self.__path_to_images = path_to_images
         self.__model = model
         self.__model_name = model_name
         self.__path_to_annotations = path_to_annotations
         self.__batch_size = batch_size
+        self.__categories = read_label_txt(PATH_TO_LABELS_TEXT)
+        self.__score_threshold = score_threshold
+        self.__iou_threshold = iou_threshold
+        self.__validation_split = validation_split
 
     """
         Run detection on each image an write result into Json file
+        Return:
+        results: list result in to coco formmat
+        eval_imgIds: list of evaluated imageIds
+        results_map: list content class_name IoU and match(True for TP and False for FP)
     """
     def generate_results_mask_compute_map(self):
         elapsed_time = []
         results = []
+
+        results_for_map = []
+        eval_imgIds = []
+
         total_image = 0
         batch_count = 0
+        cocoGt = COCO(annotation_file=self.__path_to_annotations)
 
-        for images in load_img_from_folder(self.__path_to_images,validation_split=1, batch_size=self.__batch_size, mAP=True):
+        for images in load_img_from_folder(self.__path_to_images,
+                                           validation_split=self.__validation_split,
+                                           batch_size=self.__batch_size,
+                                           mAP=True,
+                                           input_size=None):
             # convert images to be a tensor
             batch_count = batch_count + 1
             print(f"run evaluation for batch {batch_count} \t")
             for item in images:               
+                
+                coco_img = cocoGt.imgs[item['imageId']]
+                img_width= coco_img['width']
+                img_height = coco_img['height']
+                # get Annotation Ids for the ImageId
+                annotationIds = cocoGt.getAnnIds(coco_img['id'])
+                # get all annatotion corresponded to this annotation Ids. get bbox segments..
+                annotations = cocoGt.loadAnns(annotationIds)
+                
                 try:
                     # convert images to be a tensor
                     input_tensort = tf.convert_to_tensor(item['np_image'])
@@ -523,54 +461,90 @@ class Evaluation:
                     continue
                 if batch_count >2:
                     elapsed_time = np.append(elapsed_time, end_time - start_time)
+               
 
-                boxes = detections['detection_boxes']
-                classes = detections['detection_classes']
-                scores = detections['detection_scores']
-                masks  = detections['detection_masks']
+                boxes = detections['detection_boxes'][0]
+                classes = detections['detection_classes'][0]
+                scores = detections['detection_scores'][0]
+                masks  = detections['detection_masks'][0]
 
-                result = transform_detection_to_cocoresult(item,boxes[0],masks[0],classes[0],scores[0])
-                              
-                results.extend(result)
+                if boxes[0] is not None:
+                    result_coco_api = transform_detection_mask_to_cocoresult(image_id= item['imageId'],
+                                                                    image_width=img_width,
+                                                                    image_height=img_height,
+                                                                    boxes=boxes,
+                                                                    classes=classes,
+                                                                    masks=masks,
+                                                                    scores=scores)
+                                
+                    results.extend(result_coco_api)
+                    eval_imgIds.append(item['imageId'])
+
+                    # for metric computed without COCOAPi
+                    result_simple = compute_iou_of_prediction_bbox_segm(image_width=img_width,
+                                                                    image_height=img_height,
+                                                                    boxes=boxes,
+                                                                    classes= classes,
+                                                                    scores=scores,
+                                                                    masks=masks,
+                                                                    coco_annatotions= annotations,
+                                                                    score_threshold = self.__score_threshold,
+                                                                    iou_threshold =self.__iou_threshold,
+                                                                    categories = self.__categories)
+
+                    results_for_map.extend(result_simple)
                                
             total_image = total_image + len(images)
-            print('average time pro batch: {:4.1f} ms'.format((elapsed_time[-len(images):].mean()) * 1000 ))            
+
+            if batch_count >2:
+                print('average time pro batch: {:4.1f}s'.format(sum(elapsed_time[-self.__batch_size:])))
+            else:
+                print('Warmup...')
+
             print(f"Total evaluate {total_image} \t")        
                
         print(f'total time {(sum(elapsed_time)/len(elapsed_time)*1000)}')
         print('After all Evaluation FPS {:4.1f} ms '.format(1000/(sum(elapsed_time)/len(elapsed_time)*1000)))
         
+        return results,eval_imgIds, results_for_map
+            
+
+    def COCO_process_mAP(self, results, evaluated_imageIds):
+        print("*"*50)
+        print("Compute metric bbox with COCOApi")
+        print("*"*50)
+
+        click.echo(click.style(f"\n compute  bbox \n", bold=True, fg='green'))
         cocoGt = COCO(self.__path_to_annotations)
         cocoDt = cocoGt.loadRes(results)
         
-        imgIds = sorted(cocoGt.getImgIds())
-
-        click.echo(click.style(f"\n compute  bbox \n", bold=True, fg='green'))
-        cocoEval = COCOeval(cocoGt, cocoDt, "bbox")      
-        cocoEval.evaluate()
-        cocoEval.params.imgIds = imgIds
+        cocoEval = COCOeval(cocoGt, cocoDt, "bbox")
+        cocoEval.params.imgIds = evaluated_imageIds        
+        
+        cocoEval.evaluate()        
         cocoEval.accumulate()
+        cocoEval.summarize()
 
-        print(cocoEval.summarize())
+        print(cocoEval.stats[0])
 
-        click.echo(click.style(f"\n compute  segm \n", bold=True, fg='green'))
-        cocoEval = COCOeval(cocoGt, cocoDt, "segm")      
-        cocoEval.evaluate()
+        print("*"*50)
+        click.echo(click.style(f"\n compute  segmentation \n", bold=True, fg='green'))
+        print("*"*50)
+
+        cocoEval = COCOeval(cocoGt, cocoDt, "segm")
+        cocoEval.params.imgIds = evaluated_imageIds        
+        
+        cocoEval.evaluate()        
         cocoEval.accumulate()
+        cocoEval.summarize()
 
-        print(cocoEval.summarize())
+        print(cocoEval.stats[0])
 
+    def mAP_without_COCO_API(self,results, per_class):
     
-    def COCO_process_mAP(self,type):
-        cocoGt = COCO(self.__path_to_annotations)
-        cocoDt = cocoGt.loadRes(os.path.join(PATH_PERFORMANCE_INFER,self.__model_name + '.json'))
-        
-        imgIds = sorted(cocoGt.getImgIds())
-        cocoEval.params.imgIds = imgIds
-        
-        cocoEval = COCOeval(cocoGt, cocoDt, type)        
-        
-        cocoEval.evaluate()
-        cocoEval.accumulate()
-
-        print(cocoEval.summarize())
+        print("*"*50)
+        print(f"Compute metric without COCOApi per class : {per_class}")
+        print("*"*50)
+        # computer mAP
+        ap_dictionary = get_map(results, per_class=per_class)
+        print(f"{ap_dictionary}")    

@@ -19,6 +19,11 @@ PATH_TO_EXPORT_DIR = "exported_models"
 SUFFIX_EXPORT = "_saved"
 LogDir = "logdir"
 
+# metric
+IOU_THRESHOLD = 0.5
+SCORE_THRESHOLD = .2
+DATA_SIZE_VALIDATION = 1.0 # float [0,1.0]
+ 
 LIST_MODEL_TO_DOWNLOAD = {
     "ssd_resnet50_v1":"http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_resnet50_v1_fpn_640x640_coco17_tpu-8.tar.gz",
     "maskrcnn":"http://download.tensorflow.org/models/object_detection/tf2/20200711/mask_rcnn_inception_resnet_v2_1024x1024_coco17_gpu-8.tar.gz"

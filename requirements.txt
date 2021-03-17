@@ -1,7 +1,9 @@
 click==7.1.2
 onnx==1.8.0
-onnxruntime==1.6.0
-opencv-python==4.5.1.48
+onnxruntime==1.6.0 # not jetson Nano
+opencv-python==4.5.1.48 # not jetson Nano
 tf2onnx==1.8.1
 tqdm==4.56.0
 jupyter
+pillow
+pycocotools

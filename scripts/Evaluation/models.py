@@ -231,7 +231,7 @@ class Convertor:
         end_time = time.time()
         click.echo(click.style(f"\n Complet \n", bold=True, fg='green'))
         
-    return self.__converted_model_name,self.__output_saved_model_dir, end_time-start_time
+        return self.__converted_model_name,self.__output_saved_model_dir, end_time-start_time
 
     ''' 
         Freeze Tensorflow savedModel for Inference 

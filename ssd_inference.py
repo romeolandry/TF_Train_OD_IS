@@ -4,12 +4,6 @@ import sys
 import click
 
 
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-
-
 from configs.run_config import *
 from scripts.Evaluation.utils import *
 from scripts.Evaluation.models  import Model

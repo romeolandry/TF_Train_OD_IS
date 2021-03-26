@@ -195,7 +195,7 @@ FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (
 - `--mask` Boolean True to freeze mask
 
 ```shell
-$ python convert.py -t tf_trt -p path_to_saved_model_dir --batch_size 1 
+$ python convert.py -t tf_trt -p path_to_saved_model_dir
 ```
 
 ## Evaluation - SavedModel/TF-TRT-Model and ONNX

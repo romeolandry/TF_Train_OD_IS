@@ -193,7 +193,7 @@ class Convertor:
         conversion_params = trt.DEFAULT_TRT_CONVERSION_PARAMS._replace(
             precision_mode=self.__precision_mode,
             max_workspace_size_bytes=self.__max_workspacesize_byte,
-            minimum_segment_size = self.__ming_seg_size,
+            minimum_segment_size = self.__min_seg_size,
             use_calibration=self.__precision_mode == 'INT8'
         )
 
@@ -221,7 +221,7 @@ class Convertor:
             converter.convert()
         
         if self.__build_engine:
-            # Build TensorRT engine File for each graph with mode than min_seg_size nodes
+            # Build TensorRT engine File for each subgraph with node bigger than min_seg_size nodes
             click.echo(click.style(f"\n Build TensorRT Engine...\n", bold=True, fg='green'))
 
             converter.build(input_fn=partial(input_fn, self.__val_data_dir,1))        
@@ -231,7 +231,7 @@ class Convertor:
         end_time = time.time()
         click.echo(click.style(f"\n Complet \n", bold=True, fg='green'))
         
-        return self.__converted_model_name,self.__output_saved_model_dir, end_time-start_time
+    return self.__converted_model_name,self.__output_saved_model_dir, end_time-start_time
 
     ''' 
         Freeze Tensorflow savedModel for Inference 

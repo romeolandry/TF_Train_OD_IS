@@ -503,8 +503,8 @@ class Evaluation:
 
             print(f"Total evaluate {total_image} \t")        
                
-        print(f'total time {(sum(elapsed_time)/len(elapsed_time)*1000)}')
-        print('After all Evaluation FPS {:4.1f} ms '.format(1000/(sum(elapsed_time)/len(elapsed_time)*1000)))
+        print('After all Evaluation FPS {:4.1f} first methode '.format((total_image/sum(elapsed_time))))
+        print('After all Evaluation FPS {:4.1f} second methode '.format(1000/((sum(elapsed_time)/len(elapsed_time))*1000)))
         
         return results,eval_imgIds, results_for_map
             

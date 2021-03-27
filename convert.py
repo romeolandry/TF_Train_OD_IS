@@ -89,7 +89,7 @@ def main(args):
         if ((args.mode == "INT8") or (args.mode == "int8")):
             click.echo(click.style(f"\n to calibrate you model the input image size should be the same as the input size for original model \t", bold=True, fg='white'))
             click.echo(click.style(f"\n to change the default image size set --input_size parameter \t", bold=True, fg='white'))
-            click.echo(click.style(f"\n the calibration will be don with an image size of: {args.input_size} x {args.input_size} do you won to continuous ?", bold=True, fg='white'))
+            click.echo(click.style(f"\n the calibration will be don with an image size of: {args.input_size} x {args.input_size} do you won to continuous(Y or N) ?", bold=True, fg='white'))
             
             c = click.getchar()
             click.echo()

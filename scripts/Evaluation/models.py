@@ -157,7 +157,7 @@ class Convertor:
         self.__path_to_model = path_to_model
         self.__precision_mode = precision_mode
         self.__max_workspacesize_byte = max_workspace_size_bytes
-        self.__ming_seg_size = min_seg_size
+        self.__min_seg_size = min_seg_size
         self.__input_size = int(input_size)
         self.__val_data_dir = val_data_dir
         self.__annotation_file = annotation_file

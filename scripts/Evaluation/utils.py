@@ -133,27 +133,6 @@ def load_img_from_folder(path_folder,
            list of  uint8 numpy array with shape (img_height, img_width, 3)        
     """
 
-def load_img_from_folder_for_infer(path_folder,
-                                   number_of_images = None,
-                                   image_size = [640,640]):
-    img_list = []
-    count = 0
-
-    if os.path.isdir(path_folder):
-        for filename in glob.glob(path_folder + '/*.jpg'):
-            img = Image.open(filename)
-            img_list.append(np.array(img))
-
-            count +=1
-            if (number_of_images is not None) and (count == number_of_images):
-                break
-        return img_list
-    else:
-        img = Image.open(path_folder)
-        img_list.append(np.array(img))
-        return img_list
-
-
 
 
 def batch_input (batch_size=8, input_size=[299,299,3], path_to_test_img_dir=''):
@@ -197,7 +176,7 @@ def save_performance(status_to_save, json_data,file_name=None):
 ''' 
     Read label text and it as diction key value
 '''
-def read_label_txt (path):
+def read_label_txt(path):
     count = 0
     categories= {}
 

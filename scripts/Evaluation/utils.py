@@ -209,11 +209,13 @@ def read_label_txt (path):
             categories.update({count:line.strip()})
     return categories
 
-def set_input_camera(camera_input,camera_width,camera_height):
+def set_input_camera(camera_input,camera_width,camera_height,file_name):
     cap = cv2.VideoCapture(camera_input)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH,1080)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT,700)
-    return cap
+    # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.17
+    out_file = cv2.VideoWriter(file_name,cv2.VideoWriter_fourcc('M','J','P','G'), 10, (int(cap.get(3)),int(cap.get(4))))
+    return cap, out_file
 
 
 def draw_iou(image, ground_truth, pred_bbox, iou):

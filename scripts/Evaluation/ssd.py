@@ -104,14 +104,7 @@ class Inference :
         if top - label_size[1] >= 0:
             text_origin = tuple(np.array([left, top - label_size[1]]))
         else:
-            text_origin = tuple(np.array([left, to viz_utils.visualize_boxes_and_labels_on_image_array(image_np_with_detections,
-                                                                    detections['detection_boxes'][0].numpy(),
-                                                                    (detections['detection_classes'][0].numpy() + label_id_offset).astype(int),
-                                                                    detections['detection_scores'][0].numpy(),
-                                                                    category_index,
-                                                                    instance_masks=detections.get('detection_masks_reframed',None),
-                                                                    use_normalized_coordinates=True,
-                                                                    line_thickness=2)p + 1]))
+            text_origin = tuple(np.array([left, top ]))
 
         thickness = 4
         font = font = ImageFont.load_default()

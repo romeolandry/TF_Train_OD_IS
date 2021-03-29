@@ -21,9 +21,6 @@ parser.add_argument("-m","--model", required=True ,
 parser.add_argument("--webcam", default=False, action="store_true",
     help=" Use web cam for inference")
 
-parser.add_argument("-s","--size",
-                    help=" model input size ")
-
 parser.add_argument("--cam_input", default=camere_input,
     help="Index of availabe wedcam default 0")
 
@@ -43,16 +40,11 @@ parser.add_argument("--th", default=.5 ,
     help=" Threshold for bounding box")
 
 def main(args):
-    # image size for input model
-    if not args.size:
-        raise("specify the size input of your model")
-    
+    # image size for input model    
     if not args.webcam:        
         if not args.path_to_images:
             raise("give the path for image file")
-    
-    size = int(args.size)
-    input_model_size = [size, size]
+
     threshold = float(args.th)
     model = Model(args.model)
 
@@ -72,7 +64,6 @@ def main(args):
                     path_to_labels=args.label,
                     model=detection_model,
                     model_name=model_name,
-                    model_image_size=input_model_size,
                     threshold=threshold)
     if args.webcam:
         camera_input = args.cam_input

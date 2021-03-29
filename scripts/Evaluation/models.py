@@ -246,7 +246,7 @@ class Convertor:
         full_model = tf.function(lambda input_tensor: infer(input_tensor))
         
         full_model = full_model.get_concrete_function(
-                            input_tensor=tf.TensorSpec(shape=[1, self.__input_size, self.__input_size, 3], 
+                            input_tensor=tf.TensorSpec(shape=[1, None, None, 3], 
                                                         dtype=np.uint8)
                                                         ) 
         frozen_func = convert_variables_to_constants_v2(full_model)
@@ -315,7 +315,7 @@ class Convertor:
         full_model = tf.function(lambda input_tensor: infer(input_tensor))
         
         full_model = full_model.get_concrete_function(
-                            input_tensor=tf.TensorSpec(shape=[1, self.__input_size, self.__input_size, 3], 
+                            input_tensor=tf.TensorSpec(shape=[1, None, None, 3], 
                                                         dtype=np.uint8)
                                                         ) 
         frozen_func = convert_variables_to_constants_v2(full_model)

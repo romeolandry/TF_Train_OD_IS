@@ -19,7 +19,7 @@ parser.add_argument("-t","--type", choices=['tf_trt','freeze'],
 parser.add_argument("--mask", default=False, action="store_true",
     help=" to freeze mask")
 
-parser.add_argument("-p","--path",type=str,
+parser.add_argument("-m","--model",type=str,
     required=True,
     help="path to savedModel to convert")
 
@@ -64,25 +64,24 @@ parser.add_argument("--build_eng",
     help=" Use freezed graph")
 
 def main(args):
-    print(f"max workspace {args.max_ws}")
-    con = Convertor(args.path,
-                        max_workspace_size_bytes=args.max_ws,
-                        min_seg_size= args.min_seg_size,
-                        precision_mode=args.mode,
-                        input_size=args.input_size,
-                        val_data_dir=args.input_data_dir,
-                        annotation_file=args.annotation_file,
-                        calibration_data_dir= args.calibration_data_dir,
-                        batch_size= args.batch_size,
-                        model_input_type= args.input_type,
-                        build_engine = args.build_eng)
+    con = Convertor(path_to_model=args.model,
+                    max_workspace_size_bytes=args.max_ws,
+                    min_seg_size= args.min_seg_size,
+                    precision_mode=args.mode,
+                    input_size=args.input_size,
+                    val_data_dir=args.input_data_dir,
+                    annotation_file=args.annotation_file,
+                    calibration_data_dir= args.calibration_data_dir,
+                    batch_size= args.batch_size,
+                    model_input_type= args.input_type,
+                    build_engine = args.build_eng)
     if args.type =="freeze":
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow inference model  \n", bold=True, fg='green'))
         # sys.stderr.write("Not available \n")
         if args.mask:
             con.freeze_savedModel_mask()
         else:
-            con.freeze_savedModel()
+            con.freeze_savedModel_ssd()
         
     else:
         click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow-TensorRT model \n", bold=True, fg='green'))

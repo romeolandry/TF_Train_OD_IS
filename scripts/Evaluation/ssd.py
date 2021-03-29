@@ -2,12 +2,13 @@ import os
 import sys
 import time
 import click
-import matplotlib.pyplot as plt
-import cv2 as cv
+import random
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+import PIL.Image as Image
+import PIL.ImageColor as ImageColor
+import PIL.ImageDraw as ImageDraw
+import PIL.ImageFont as ImageFont
+import cv2 as cv
 
 import tensorflow as tf
 import numpy as np
@@ -15,12 +16,15 @@ import numpy as np
 sys.path.append(os.path.abspath(os.curdir))
 
 from configs.run_config import *
-#from scripts.api_scrpit import *
 from scripts.Evaluation.utils import *
 from scripts.Evaluation.metric import *
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 
 # set input output name
@@ -52,13 +56,11 @@ class Inference :
                  path_to_labels,
                  model,
                  model_name="output",
-                 model_image_size = 640,
                  threshold=0.5):
         self.__path_to_images = path_to_images
         self.__path_to_labels = path_to_labels
         self.__model = model
         self.__images_name_prefix = model_name
-        self.__model_image_size = model_image_size
         self.__threshold = threshold
         self.__categories = read_label_txt(PATH_TO_LABELS_TEXT)
         ## create category index for coco 
@@ -69,29 +71,60 @@ class Inference :
         draw bbox on image
     '''
     def visualize_bbox(self,image,score,bbox,classId):
-        
-        width = image.shape[0]
-        height = image.shape[1]
 
-        
+        random.seed(0)
 
-        lastbbox= None
+        color_str = ImageColor.getrgb(random.choice(COLOR_PANEL))
+
+        pil_image = Image.fromarray(np.uint8(image)).convert('RGB')
+
+        draw = ImageDraw.Draw(pil_image)
+        im_width, im_height = pil_image.size
+
+        ymin, xmin, ymax, xmax = bbox
+
+            
+        left = xmin * im_width
+        right = xmax * im_width
+        top = ymin * im_height
+        bottom = ymax * im_height
+            
+        # convert to int 
+        left = max(0, np.floor(left + 0.5).astype('int32'))
+        right = min(im_width, np.floor(right + 0.5).astype('int32'))
+        top = max(0, np.floor(top + 0.5).astype('int32'))
+        bottom = min(im_height, np.floor(bottom + 0.5).astype('int32'))
+
         # get class text
         label = self.__categories[classId]
         # get class text
         scored_label = label + ' ' + format(score * 100, '.2f')+ '%'
-        x = bbox[1] * height
-        y = bbox[0] * width
-        right = bbox[3] * height
-        bottom = bbox[2] * width
-        font = cv.FONT_HERSHEY_COMPLEX
 
-        cv.rectangle(image, (int(x), int(y)), (int(right), int(bottom)), (125, 255, 51), thickness=2)
-        if lastbbox == bbox[1]:
-            cv.putText(image, scored_label, (int(x)+30, int(y)+50),font, 1, (0, 255, 0), thickness=1)
+        label_size = draw.textsize(scored_label)
+        if top - label_size[1] >= 0:
+            text_origin = tuple(np.array([left, top - label_size[1]]))
         else:
-            cv.putText(image, scored_label, (int(x)+10, int(y)+20),font, 1, (0, 255, 0), thickness=1)
-        lastbbox = bbox[1]
+            text_origin = tuple(np.array([left, to viz_utils.visualize_boxes_and_labels_on_image_array(image_np_with_detections,
+                                                                    detections['detection_boxes'][0].numpy(),
+                                                                    (detections['detection_classes'][0].numpy() + label_id_offset).astype(int),
+                                                                    detections['detection_scores'][0].numpy(),
+                                                                    category_index,
+                                                                    instance_masks=detections.get('detection_masks_reframed',None),
+                                                                    use_normalized_coordinates=True,
+                                                                    line_thickness=2)p + 1]))
+
+        thickness = 4
+        font = font = ImageFont.load_default()
+        margin = np.ceil(0.05 * label_size[1])
+        #draw.rectangle([(left, text_origin[0] - 2 * margin), (left + label_size[1],text_origin[1])],fill=color_str)
+        draw.rectangle([left + thickness, top + thickness, right - thickness, bottom - thickness], outline=color_str)
+        draw.text(text_origin,
+                scored_label,
+                font=font, 
+                fill=color_str)
+
+        np.copyto(image, np.array(pil_image))       
+
         return image
 
     ''' 
@@ -101,9 +134,7 @@ class Inference :
     
         # read and Preprocess image 
         img = cv.imread(self.__path_to_images)
-        
-        image_np = cv.resize(img, (self.__model_image_size[0], self.__model_image_size[1]))
-        image_np = image_np[:, :, [2, 1, 0]]  # BGR2RGB
+        image_np = img[:, :, [2, 1, 0]]  # BGR2RGB
        
         # convert images to be a tensor
         input_tensor = tf.convert_to_tensor(image_np)
@@ -134,19 +165,13 @@ class Inference :
                 img = self.visualize_bbox(img,score,bbox,classId)
 
         img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_savedmodel_ssd_cv2.png")
-        cv.imwrite(img_path,img)
-            
-        cv.imshow(self.__images_name_prefix, img)
-        cv.waitKey(1)
-        print('Done')
+        cv.imwrite(img_path,img)            
+        print(f"Done! image was saved into: {img_path}")
             
 
     def ssd_inference_webcam_saved_model(self,camera_input,camera_width,camera_height):
-        extract = []
-        
-        cap = set_input_camera(camera_input,camera_width,camera_height)
-        #Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.17
-        out_file = cv.VideoWriter(self.__images_name_prefix +".mp4",cv.VideoWriter_fourcc('M','J','P','G'), 10, (int(cap.get(3)),int(cap.get(4))))
+        extract = []        
+        cap,out_file = set_input_camera(camera_input,camera_width,camera_height,self.__images_name_prefix +".mp4")        
         counter = 1
         while True:
             # Read frame from camera
@@ -195,10 +220,13 @@ class Inference :
 
                 if score > self.__threshold:
                     img = self.visualize_bbox(img,score,bbox,classId)
-
                      # Display output
                     out_file.write(img)
                     cv.imshow(self.__images_name_prefix,img)
+
+                    if self.__categories[classId] in TRACKED_OBJECT:
+                        img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_freezed_cv2_"+ str(i) + "_.png")
+                        cv.imwrite(img_path,img)
 
             if cv.waitKey(25) & 0xFF == ord('q'):
                 break
@@ -220,8 +248,7 @@ class Inference :
         # read and Preprocess image 
         img = cv.imread(self.__path_to_images)
         
-        inp = cv.resize(img, (self.__model_image_size[0], self.__model_image_size[1]))
-        inp = inp[:, :, [2, 1, 0]]  # BGR2RGB
+        inp = img[:, :, [2, 1, 0]]  # BGR2RGB
         # read frozen Graph       
         elapsed_time = 0
         with tf.compat.v1.Session() as sess:
@@ -261,16 +288,12 @@ class Inference :
             os.mkdir(PATH_DIR_IMAGE_INF)
         
         img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix +'_ssd.png') 
-        print(img_path)
         cv.imwrite(img_path,img)
-            
-        cv.imshow(self.__images_name_prefix, img)
-        cv.waitKey(1)
+        print(f"Done! image was saved into: {img_path}")
+        
     
     def ssd_inference_webcam_freezed_model(self,camera_input,camera_width,camera_height):
-       cap = set_input_camera(camera_input,camera_width,camera_height)
-       #Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.17
-       out_file = cv.VideoWriter('out_file.avi',cv.VideoWriter_fourcc('M','J','P','G'), 10, (int(cap.get(3)),int(cap.get(4))))
+       cap,out_file = set_input_camera(camera_input,camera_width,camera_height,self.__images_name_prefix +".mp4")
        with tf.compat.v1.Session() as sess:
             sess.graph.as_default()
             start =time.time()
@@ -290,10 +313,7 @@ class Inference :
             
                 height = frame.shape[0]
                 width = frame.shape[1]
-                img = np.array(frame)
-
-                img_to_infer = cv.resize(img, (self.__model_image_size[0],self.__model_image_size[1]), interpolation=cv.INTER_CUBIC)
-                           
+                img_to_infer = np.array(frame)                           
                 
                 # Apply the prediction
                 # Identity_5:0 => num_detections
@@ -313,17 +333,16 @@ class Inference :
                     score = float(out[1][0][i])
                     bbox = [float(v) for v in out[3][0][i]]
 
-                    ## save fp and tp
-                    if classId== 1 and score > self.__threshold:
-                        img_to_save = self.visualize_bbox(img,score,bbox,classId)
-                        img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_freezed_cv2_"+ str(i) + "_.png")
-                        cv.imwrite(img_path,img_to_save)  
-
                     if score > self.__threshold:
-                        img = self.visualize_bbox(img,score,bbox,classId)
-                
+                        img = self.visualize_bbox(img_to_infer,score,bbox,classId)
                         out_file.write(img)
                         cv.imshow(self.__images_name_prefix,img)
+
+                        if self.__categories[classId] in TRACKED_OBJECT:
+                            img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_freezed_cv2_"+ str(i) + "_.png")
+                            cv.imwrite(img_path,img)
+                
+
                 if cv.waitKey(25) & 0xFF == ord('q'):
                     break
         

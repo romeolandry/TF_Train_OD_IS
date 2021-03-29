@@ -216,7 +216,7 @@ $ python [ssd_eval.py/mask_eval.py]  --model path_to_saved_model_dir --batch_siz
 
 ## Inference
 
-![Alt Text](https://github.com/romeolandry/TF_Train_OD_IS/blob/main/Documentation/mask-rcnn-resnet-v2-1024-tf.gif)
+![Alt Text](/TF_Train_OD_IS/Documentation/mask-rcnn-resnet-v2-1024-tf.gif)
 
 
 

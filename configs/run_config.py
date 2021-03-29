@@ -19,6 +19,8 @@ PATH_TO_EXPORT_DIR = "exported_models"
 SUFFIX_EXPORT = "_saved"
 LogDir = "logdir"
 
+TRACKED_OBJECT= ["person","car","motorcycle","tv","laptop","mouse","remote","keyboard","cell phone","bicycle"]
+
 # metric
 IOU_THRESHOLD = 0.5
 SCORE_THRESHOLD = .2
@@ -49,6 +51,8 @@ INPUT_TYPE = ['image_tensor', 'encoded_image_string_tensor', 'tf_example','float
 # Convertor
 PATH_TO_CONVERTED_MODELS = "converted_models"
 PATH_KERAS_TO_TF = "tf_from_keras"
+
+COLOR_PANEL = ["Salmon","Lime","LightCyan","LemonChiffon","PapayaWhip"]
 
 # TF-TRT
 MAX_WORKSPACE_SIZE_BITES = 1<<20

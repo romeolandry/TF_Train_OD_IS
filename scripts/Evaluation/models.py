@@ -198,7 +198,7 @@ class Convertor:
         )
 
         start_time = time.time()
-        freezed_model = self.__model_class.load_saved_model_for_inference()        
+        # freezed_model = self.__model_class.load_saved_model_for_inference()        
         converter = trt.TrtGraphConverterV2(
             input_saved_model_dir=self.__path_to_model,
             conversion_params=conversion_params

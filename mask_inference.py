@@ -58,15 +58,7 @@ def main(args):
     threshold = float(args.th)
     model = Model(args.model)
 
-    if args.freezed:
-        # Load model from forzen model .pb
-        detection_model, model_name = model.load_freezed_model()
-        # model.tf_pb_viewer()
-    else:
-        if args.webcam:
-            raise("Opencv2 don't perform on savedModel Tensorflow. please use frozen graph")
-        # Load model from saved model .pb
-        detection_model, model_name = model.Load_savedModel_model()
+    detection_model, model_name = model.Load_savedModel_model()
         
     infer = Inference(path_to_images=args.path_to_images,
                     path_to_labels=args.label,
@@ -80,10 +72,16 @@ def main(args):
         camera_height = args.cam_height
 
         click.echo(click.style(f"\n Start inference using webcam \n", bold=True, fg='green'))
-      
-        infer.mask_inference_webcam_freezed_model(camera_input,
-                                                 camera_width,
-                                                 camera_height)
+
+        if args.freezed:      
+            infer.mask_inference_webcam_freezed_model(camera_input,
+                                                    camera_width,
+                                                    camera_height)
+        else:
+
+            infer.mask_inference_webcam_2(camera_input,
+                                        camera_width,
+                                        camera_height)
     else:
 
         click.echo(click.style(f"\n Start inference from {args.path_to_images} ... \n", bold=True, fg='green'))    

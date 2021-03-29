@@ -46,51 +46,6 @@ def wrap_frozen_graph(graph_def, inputs, outputs, print_graph=False):
         tf.nest.map_structure(import_graph.as_graph_element, inputs),
         tf.nest.map_structure(import_graph.as_graph_element, outputs))
 
-
-"""
-    visualize bbox
-"""
-def viewer(img, boxes,classes, scores, th=0.1):
-    
-    boxes = boxes.numpy()
-    masks = masks.numpy()
-    scores = scores.numpy()
-    classes = classes.numpy()
-
-    
-    assert boxes.shape[0]  == classes.shape[0] == scores.shape[0]
-    h,w= img.shape[:2]
-
-    categories = read_label_txt(PATH_TO_LABELS_TEXT)
-
-    img = img.copy()
-
-    for i in range(boxes.shape[0]):
-        classId = classes[i]
-        score = scores[i]
-        # get class text
-        label = categories[classId]
-        # get class text
-        scored_label = label + ' ' + format(score * 100, '.2f')+ '%'
-
-        if not np.any(boxes[i]):
-            # skip instance that has no bbox
-            continue
-
-        font = cv.FONT_HERSHEY_COMPLEX
-
-        box = boxes[i]* np.array([w,h,w,h])
-        (startY,startX,endY,endX) = box,astype("int") # top,left right, bottom
-
-        cv.rectangle(img, (startX, startX), (int(endY), int(endX)), (125, 255, 51), thickness=2)
-        cv.putText(img, scored_label, (int(startX)+10, int(startX)+20),font, 1, (0, 255, 0), thickness=1)
-
-        boxW = endX - startX
-        boxH = endY - startY
-
-    return img
-
-
 class Inference :
     def __init__(self,
                  path_to_images,
@@ -176,7 +131,7 @@ class Inference :
 
 
             if score > self.__threshold:
-                img = self. visualize_bbox(img,score,bbox,classId)
+                img = self.visualize_bbox(img,score,bbox,classId)
 
         img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_savedmodel_ssd_cv2.png")
         cv.imwrite(img_path,img)
@@ -184,6 +139,74 @@ class Inference :
         cv.imshow(self.__images_name_prefix, img)
         cv.waitKey(1)
         print('Done')
+            
+
+    def ssd_inference_webcam_saved_model(self,camera_input,camera_width,camera_height):
+        extract = []
+        
+        cap = set_input_camera(camera_input,camera_width,camera_height)
+        #Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.17
+        out_file = cv.VideoWriter(self.__images_name_prefix +".mp4",cv.VideoWriter_fourcc('M','J','P','G'), 10, (int(cap.get(3)),int(cap.get(4))))
+        counter = 1
+        while True:
+            # Read frame from camera
+            ret, image_np = cap.read()
+
+            # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+            image_np_expanded = np.expand_dims(image_np, axis=0)
+            
+            input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.uint8)
+            detections = self.__model(input_tensor)
+
+            ## convert all output to a numpy array
+            num_detections = int(detections.pop('num_detections'))
+            detections = {key: value[0, :num_detections].numpy()
+                            for key, value in detections.items()}
+            detections['num_detections'] = num_detections
+            # detection_classes should be int64.
+            detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+
+
+            img = image_np.copy()
+
+            # Extract object.
+            extracted = parse_detector(image_np,
+                                       detections['detection_boxes'],
+                                       detections['detection_classes'],
+                                       detections['detection_scores'],
+                                       self.__categories,
+                                       tp_th=.3,
+                                       list_object_to_tracked=TRACKED_OBJECT)
+            
+            img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_" + str(counter) + "_.png")
+            counter = counter +1
+            
+            if len(extracted)> 0:
+                extract.append({"image":img_path,
+                                "annotation":extracted})
+                cv.imwrite(img_path,img)
+
+
+            # Visualize detected bounding boxes.
+            for i in range(num_detections):
+                classId = detections['detection_classes'][i]
+                score = detections['detection_scores'][i]
+                bbox = [float(v) for v in detections['detection_boxes'][i]]
+
+                if score > self.__threshold:
+                    img = self.visualize_bbox(img,score,bbox,classId)
+
+                     # Display output
+                    out_file.write(img)
+                    cv.imshow(self.__images_name_prefix,img)
+
+            if cv.waitKey(25) & 0xFF == ord('q'):
+                break
+
+        cap.release()
+        cv.destroyAllWindows()
+        if len(extract)> 0:
+            save_performance("prediction",extract, "extracted_ssd_saved.json")
 
     ''' 
         Using SSD-resnet50v to apply inference on image with openCV
@@ -232,7 +255,7 @@ class Inference :
                 bbox = [float(v) for v in out[3][0][i]]
 
                 if score > self.__threshold:
-                    img = self. visualize_bbox(img,score,bbox,classId)
+                    img = self.visualize_bbox(img,score,bbox,classId)
 
         if not os.path.isdir(PATH_DIR_IMAGE_INF):
             os.mkdir(PATH_DIR_IMAGE_INF)
@@ -246,6 +269,8 @@ class Inference :
     
     def ssd_inference_webcam_freezed_model(self,camera_input,camera_width,camera_height):
        cap = set_input_camera(camera_input,camera_width,camera_height)
+       #Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.17
+       out_file = cv.VideoWriter('out_file.avi',cv.VideoWriter_fourcc('M','J','P','G'), 10, (int(cap.get(3)),int(cap.get(4))))
        with tf.compat.v1.Session() as sess:
             sess.graph.as_default()
             start =time.time()
@@ -267,7 +292,7 @@ class Inference :
                 width = frame.shape[1]
                 img = np.array(frame)
 
-                img_to_infer = cv.resize(img, (self.__model_image_size[0],self.__model_image_size[1]), interpolation=cv2.INTER_CUBIC)
+                img_to_infer = cv.resize(img, (self.__model_image_size[0],self.__model_image_size[1]), interpolation=cv.INTER_CUBIC)
                            
                 
                 # Apply the prediction
@@ -288,12 +313,23 @@ class Inference :
                     score = float(out[1][0][i])
                     bbox = [float(v) for v in out[3][0][i]]
 
+                    ## save fp and tp
+                    if classId== 1 and score > self.__threshold:
+                        img_to_save = self.visualize_bbox(img,score,bbox,classId)
+                        img_path = os.path.join(PATH_DIR_IMAGE_INF,self.__images_name_prefix + "_freezed_cv2_"+ str(i) + "_.png")
+                        cv.imwrite(img_path,img_to_save)  
+
                     if score > self.__threshold:
-                        img = self. visualize_bbox(img,score,bbox,classId)
-                cv.imshow(self.__images_name_prefix,img)
-                cv.waitKey(1)
-
-
+                        img = self.visualize_bbox(img,score,bbox,classId)
+                
+                        out_file.write(img)
+                        cv.imshow(self.__images_name_prefix,img)
+                if cv.waitKey(25) & 0xFF == ord('q'):
+                    break
+        
+            cap.release()
+            cv.destroyAllWindows()
+        
 class Evaluation:
     def __init__(self,
                  path_to_images,

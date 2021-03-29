@@ -61,9 +61,11 @@ def main(args):
         detection_model, model_name = model.load_freezed_model()
     else:
         if args.webcam:
-            raise("Opencv2 don't perform on savedModel Tensorflow. please use frozen graph")
-        # Load model from saved model .pb
-        detection_model, model_name = model.Load_savedModel_model()
+            # raise("Opencv2 don't perform on savedModel Tensorflow. please use frozen graph")
+            detection_model, model_name = model.Load_savedModel_model()
+        else:
+            # Load model from saved model .pb
+            detection_model, model_name = model.Load_savedModel_model()
 
 
     infer = Inference(path_to_images=args.path_to_images,
@@ -78,10 +80,15 @@ def main(args):
         camera_height = args.cam_height
 
         click.echo(click.style(f"\n Start inference using webcam \n", bold=True, fg='green'))
-      
-        infer.ssd_inference_webcam_freezed_model(camera_input,
-                                                 camera_width,
-                                                 camera_height)
+
+        if args.freezed:      
+            infer.ssd_inference_webcam_freezed_model(camera_input,
+                                                    camera_width,
+                                                    camera_height)
+        else:
+            infer.ssd_inference_webcam_saved_model(camera_input,
+                                                    camera_width,
+                                                    camera_height)
 
     else:
 

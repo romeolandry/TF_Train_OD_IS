@@ -63,8 +63,6 @@ def load_img_from_folder_update(path_folder,
     return dataset , image_ids
 
 
-
-
 """
     load image from file into numpy array.
 
@@ -227,60 +225,38 @@ def draw_iou(image, ground_truth, pred_bbox, iou):
 
     return image
 
-def draw_iou_mask(image, ground_truth_mask,pred_mask,iou):
-    pass
+def parse_detector(image,boxes,classes,scores,categories,list_object_to_tracked,masks=None,tp_th=.50):
+    extracted = []
+    if masks is None:
+        assert boxes.shape[0]  == classes.shape[0] == scores.shape[0]
+    else:
+        assert boxes.shape[0]  == classes.shape[0] == scores.shape[0] == masks.shape[0]
 
-"""
-    Post preprocessing mask
-"""
-def postprocessing(img, boxes,classes, scores,mask, th=0.1):
-    
-    boxes = boxes.numpy()
-    masks = masks.numpy()
-    scores = scores.numpy()
-    classes = classes.numpy()
-
-    
-    assert boxes.shape[0] == masks.shape[0] == classes.shape[0] == scores.shape[0]
-    h,w= img.shape[:2]
-
-    categories = read_label_txt(PATH_TO_LABELS_TEXT)
-
-    img = img.copy()
-
+    h,w= image.shape[:2]
     for i in range(boxes.shape[0]):
         classId = classes[i]
         score = scores[i]
         # get class text
         label = categories[classId]
-        # get class text
-        scored_label = label + ' ' + format(score * 100, '.2f')+ '%'
-
-        if not np.any(boxes[i]):
-            # skip instance that has no bbox
+        if label not in list_object_to_tracked:
             continue
-
-        font = cv.FONT_HERSHEY_COMPLEX
-
         box = boxes[i]* np.array([w,h,w,h])
-        (startY,startX,endY,endX) = box,astype("int") # top,left right, bottom
+        if score> tp_th:
+            if masks is None:
+                extracted.append({
+                    "class": label,
+                    "score": str(score),
+                    "box":list(box)
+                })
+            else:
+                mask = mask[i]
 
-        cv.rectangle(img, (startX, startX), (int(endY), int(endX)), (125, 255, 51), thickness=2)
-        cv.putText(img, scored_label, (int(startX)+10, int(startX)+20),font, 1, (0, 255, 0), thickness=1)
+                extracted.append({
+                    "class": label,
+                    "score": str(score),
+                    "box":list(box),
+                    "segmentation":mask
+                })
+                
 
-        boxW = endX - startX
-        boxH = endY - startY
-
-        mask = cv.resize(masks[i], (boxW, boxH), interpolation=cv.INTER_NEAREST)
-
-        mask = (mask > .05)
-
-        roi = img[startY:endY, startX:endX]
-        
-
-        roi = [mask]
-
-        blended = ((0.4 * (255,0,0)) + (0.6 * roi)).astype("uint8")
-
-        roi = img[startY:endY, startX:endX][mask]= blended
-    return img
+    return extracted

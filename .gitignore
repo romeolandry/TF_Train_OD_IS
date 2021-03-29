@@ -145,3 +145,6 @@ dmypy.json
 /test_images
 /performances
 /logdir
+.mp4
+.avi
+!Documentation/*.mp4

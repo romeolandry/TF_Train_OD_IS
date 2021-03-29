@@ -216,6 +216,10 @@ $ python [ssd_eval.py/mask_eval.py]  --model path_to_saved_model_dir --batch_siz
 
 ## Inference
 
+![Alt Text](https://github.com/romeolandry/TF_Train_OD_IS/blob/main/Documentation/mask-rcnn-resnet-v2-1024-tf.gif)
+
+
+
 Depend of the model you won to Inference, it is prefixed file *model*_ inference.py  
 
 The file `ssd_inference` or `mask_inference` will be use to apply the model(pre-trained and exported) on saved images or from web-cam.

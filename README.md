@@ -2,6 +2,7 @@
 
 ## Insatll Tensorflow Object detection API and COCO API for coco metric
 ### [Install Tensorflow Api](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/install.html)
+**Note**: its Not required for the evaluation; the Inference (of SSD) and the conversion of already trained models.
 
     ## Install tensorflow-gpu 2.x
     pip install tensorflow-gpu 
@@ -18,8 +19,7 @@ $ pip install pycocotools
 $ cp object_detection/packages/tf2/setup.py .
 $ python -m pip install .
 ```
-
-FrozedTest installation
+Test installation
 
 ```shell
 # From within TensorFlow/models/research/
@@ -186,7 +186,7 @@ FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (
 **NOTE** To allow tensorflow to use all available memory of GPU  change the of ´GPU_MEM_CAP´ into [run_config](./configs/run_config.py). Set it to max memory of GPU. by default `None`. its mean Tensorflow doesn't allow all the available memory however some model need more memory for more performance.
 
 - `--type or -t` convert to Tensorflow frozen graph `freeze)`or Tensorflow-TensorRT for inference `tf_trt`
-- `-p or --path` path to model to convert . For Tensorflow model directory (savedModel).
+- `-m or --model` path to model to convert . For Tensorflow model directory (savedModel).
 - ` --mode` precision mode if you won a tf_trt model. eg: FP32
 - `--max_ws` MAX_WORKSPACE_SIZE_BITES for tf-trt model. eg: 8*(10**9)
 - `--input_size` Input size of image for eventual calibration. In case to convert to INT8
@@ -195,10 +195,10 @@ FrozedThe Convertor Module help Tensorflow `SavedModel` to Tensorflow-TensorRT (
 - `--mask` Boolean True to freeze mask
 
 ```shell
-$ python convert.py -t tf_trt -p path_to_saved_model_dir
+$ python convert.py -t tf_trt -m path_to_saved_model_dir
 ```
 
-## Evaluation - SavedModel/TF-TRT-Model and ONNX
+## Evaluation - Tensorflow/TF-TRT-Model
 
 Evaluate a saved model
 
@@ -208,7 +208,7 @@ Evaluate a saved model
 - `-a` or `--annotation` to set path to annotation. the default is the path `instances_val2017.json`.
 - `-s` or `--score_threshold` to set witch prediction should be considerate
 - `iou` to set Threshold for **True Positive** or **False Positive** for computation of Average Precision
-- `--data_size`  to set witch size of Validation dataset should be use 1: for all 0.5 for half
+- `--data_size`  float to set quantity of Validation dataset to be use 1: for all 0.5 for half
 
 ```shell
 $ python [ssd_eval.py/mask_eval.py]  --model path_to_saved_model_dir --batch_size 100
@@ -218,7 +218,7 @@ $ python [ssd_eval.py/mask_eval.py]  --model path_to_saved_model_dir --batch_siz
 
 Depend of the model you won to Inference, it is prefixed file *model*_ inference.py  
 
-The file `run_inference` will be use to apply the model(pre-trained and exported) on saved images or from web-cam.
+The file `ssd_inference` or `mask_inference` will be use to apply the model(pre-trained and exported) on saved images or from web-cam.
 
 - `--freezed` : Boolean. default is `False`  set True inference with Frozen  model. its required to use Web-cam
 
@@ -226,14 +226,13 @@ The file `run_inference` will be use to apply the model(pre-trained and exported
 
 - `--webcam ` if you won to use web-cam module. **Note:** Only for frozen Graph
 - `-p or --path_to_images`  Path to the image.
-- `-s or --size` Input size of the model.
 - `-l or --label` set the path to label.
-- `--cam_input` Integer the index of the web-cam.
+- `--cam_input` Integer the index of the web-cam. Default is 0.
 
 To run inference on images.
 
 ```shell
-$ python ssd_inference.py -m [path_to_freezed/savedModel]  -s 640 --path_to_images 
+$ python ssd_inference.py -m [path_to_freezed/savedModel]  -p 
 ```
 
 It will create a directory named `images_inferences` to save inference.
@@ -241,7 +240,9 @@ It will create a directory named `images_inferences` to save inference.
 To inference using web-cam run :
 
 ```shell
-$ python ssd_inference.py --freezed -m path_to_freezed_model  -s 640 --webcam
+$ python ssd_inference.py --freezed -m path_to_freezed_model  --webcam
 ```
 
 Change `ssd_inference.py` to  `mask_inference.py` to apply inference with  instance segmentation model.
+
+**Note**: Inference and Evaluation of Mask-RCNN Model using Freezed model it not implemented.

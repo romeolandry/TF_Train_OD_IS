@@ -82,7 +82,7 @@ def main(args):
             con.freeze_savedModel_ssd()
         
     else:
-        click.echo(click.style(f"\n Conversion of {args.path} to Tensorflow-TensorRT model \n", bold=True, fg='green'))
+        click.echo(click.style(f"\n Conversion of {args.model} to Tensorflow-TensorRT model \n", bold=True, fg='green'))
         if ((args.mode == "INT8") or (args.mode == "int8")):
             click.echo(click.style(f"\n to calibrate you model the input image size should be the same as the input size for original model \t", bold=True, fg='white'))
             click.echo(click.style(f"\n to change the default image size set --input_size parameter \t", bold=True, fg='white'))

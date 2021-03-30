@@ -3,8 +3,6 @@ import click
 import os
 
 from configs.run_config import *
-from scripts.run.download import *
-from scripts.run.make import *
 from scripts.Evaluation.utils import *
 from scripts.Evaluation.models import *
 

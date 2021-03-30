@@ -148,7 +148,6 @@ class Convertor:
                  input_size,
                  val_data_dir,
                  annotation_file,
-                 calibration_data_dir,
                  batch_size,
                  model_input_type,
                  build_engine
@@ -161,7 +160,6 @@ class Convertor:
         self.__input_size = int(input_size)
         self.__val_data_dir = val_data_dir
         self.__annotation_file = annotation_file
-        self.__calibration_data = calibration_data_dir
         self.__batch_size = batch_size
         self.__model_input_type = tf.uint8
         if model_input_type == 'float':
@@ -203,28 +201,27 @@ class Convertor:
             input_saved_model_dir=self.__path_to_model,
             conversion_params=conversion_params
         )
-        def input_fn(input_dir, num_iterations=2048):
+        def input_fn():
+            num_iterations=100
             dataset, image_ids = utils.load_img_from_folder_update(self.__val_data_dir,self.__annotation_file,self.__batch_size,self.__input_size,dtype=self.__model_input_type)
-
             for i, batch_image in enumerate(dataset):
                 if i>= num_iterations:
                     break
                 yield(batch_image,)
-                print("  step %d/%d" % (i+1, num_iterations))
+                print(" Calibration / builded  step %d/%d" % (i+1, num_iterations))
                 i += 1
     
         click.echo(click.style(f"\n Using precision mode: {self.__precision_mode}\n", bold=True, fg='green'))
 
         if self.__precision_mode == trt.TrtPrecisionMode.INT8:
-            converter.convert(calibration_input_fn=partial(input_fn, self.__calibration_data, 500//self.__batch_size))
+            converter.convert(calibration_input_fn=input_fn)
         else:
             converter.convert()
         
         if self.__build_engine:
             # Build TensorRT engine File for each subgraph with node bigger than min_seg_size nodes
             click.echo(click.style(f"\n Build TensorRT Engine...\n", bold=True, fg='green'))
-
-            converter.build(input_fn=partial(input_fn, self.__val_data_dir,1))        
+            converter.build(input_fn=partial(input_fn))       
         
         click.echo(click.style(f"\n Saving {self.__model_name} \n", bold=True, fg='green'))
         converter.save(output_saved_model_dir = self.__output_saved_model_dir)

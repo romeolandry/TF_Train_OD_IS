@@ -49,12 +49,8 @@ parser.add_argument("--annotation_file", type=str,
     default=PATH_ANNOTATIONS +'/instances_val2017.json',
     help=" path to coco annotation file to load  input file")
 
-parser.add_argument("--calibration_data_dir", type=str,
-    default=PATH_ANNOTATIONS +'/bbox',
-    help=" path to directory contening TFRecord file vor validation")
-
 parser.add_argument("--batch_size",type=int, 
-    default=32,
+    default=1,
     help="batch-size to calibrate the data")
 
 parser.add_argument("--build_eng",
@@ -69,7 +65,6 @@ def main(args):
                     input_size=args.input_size,
                     val_data_dir=args.input_data_dir,
                     annotation_file=args.annotation_file,
-                    calibration_data_dir= args.calibration_data_dir,
                     batch_size= args.batch_size,
                     model_input_type= args.input_type,
                     build_engine = args.build_eng)

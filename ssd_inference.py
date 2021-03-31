@@ -2,12 +2,36 @@ import argparse
 import os
 import sys
 import click
+import tensorflow as tf
 
 
 from configs.run_config import *
 from scripts.Evaluation.utils import *
 from scripts.Evaluation.models  import Model
 from scripts.Evaluation.ssd import Inference
+
+if USE_GPU:
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    # Enable GPU dynamic memory allocation
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    for gpu in gpus:
+        try:
+            if GPU_MEM_CAP is None:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            else:
+                tf.config.experimental.set_virtual_device_configuration(
+                    gpu,
+                    [tf.config.experimental.VirtualDeviceConfiguration(
+                        memory_limit=GPU_MEM_CAP)])
+        
+        except RuntimeError as e:
+            print('Can not set GPU memory config', e)
+else:
+    # Set CPU as available physical device
+    os.environ['CUDA_VISIBLE_DEVICES'] = ''
+    my_devices = tf.config.experimental.list_physical_devices(device_type='CPU')
+    tf.config.experimental.set_visible_devices(devices= my_devices, device_type='CPU')  
+
 
 
 parser = argparse.ArgumentParser(description="Inference model. saved model or converted model")
@@ -21,13 +45,13 @@ parser.add_argument("-m","--model", required=True ,
 parser.add_argument("--webcam", default=False, action="store_true",
     help=" Use web cam for inference")
 
-parser.add_argument("--cam_input", default=camere_input,
+parser.add_argument("--cam_input", default=camere_input, type= int,
     help="Index of availabe wedcam default 0")
 
-parser.add_argument("--cam_width", default=camera_width,
+parser.add_argument("--cam_width", default=camera_width, type= int,
     help="camera width")
 
-parser.add_argument("--cam_height", default=camera_height,
+parser.add_argument("--cam_height", default=camera_height, type= int,
     help="camera height")
 
 parser.add_argument("-p","--path_to_images",
@@ -36,7 +60,7 @@ parser.add_argument("-p","--path_to_images",
 parser.add_argument("-l","--label", default=PATH_TO_LABELS_MAP ,
     help="the to label mab corresponding to model")
 
-parser.add_argument("--th", default=.5 ,
+parser.add_argument("--th", default=.5 , type= float,
     help=" Threshold for bounding box")
 
 def main(args):

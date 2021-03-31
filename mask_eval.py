@@ -2,11 +2,30 @@ import argparse
 import os
 import sys
 import click
+import tensorflow as tf
 
 from configs.run_config import *
 from scripts.Evaluation.utils import *
 from scripts.Evaluation.models  import Model
 from scripts.Evaluation.mask import Evaluation
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+# Enable GPU dynamic memory allocation
+gpus = tf.config.experimental.list_physical_devices('GPU')
+for gpu in gpus:
+    try:
+        if GPU_MEM_CAP is None:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        else:
+            tf.config.experimental.set_virtual_device_configuration(
+                gpu,
+                [tf.config.experimental.VirtualDeviceConfiguration(
+                    memory_limit=GPU_MEM_CAP)])
+    
+    except RuntimeError as e:
+        print('Can not set GPU memory config', e)
 
 
 parser = argparse.ArgumentParser(description="Eval model. saved model or converted model")

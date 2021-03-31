@@ -10,7 +10,7 @@ import PIL.ImageDraw as ImageDraw
 import PIL.ImageFont as ImageFont
 import cv2 as cv
 
-import tensorflow as tf
+
 import numpy as np
 
 sys.path.append(os.path.abspath(os.curdir))
@@ -21,11 +21,6 @@ from scripts.Evaluation.metric import *
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-
 
 # set input output name
 inputs = ["input_tensor:0"]

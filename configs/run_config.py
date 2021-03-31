@@ -62,11 +62,13 @@ MIN_SEGMENTATION_SIZE = 3
 GPU_MEM_CAP = None #  None to allow memory growth.
 INPUT_TYPE_MODEL='int'
 
+USE_GPU = True
+
 PATH_PERFORMANCE_CONVERT = "performances/convertort.json"
 PATH_PERFORMANCE_INFER = "performances"
 PATH_DIR_IMAGE_INF = "images_inferences"
 
-camere_input = int(1)
+camere_input = 1
 camera_width = 720
 camera_height = 720
 

@@ -56,3 +56,9 @@ https://developer.nvidia.com/transfer-learning-toolkit
 ## TRITON
 
 https://developer.nvidia.com/blog/deploying-models-from-tensorflow-model-zoo-using-deepstream-and-triton-inference-server/
+
+## Jetson Nano ISSUE 
+Tensorflow2.x savedModel take to long (~30 min just load) on jetson Nano and can't converted to TF-TRT because of some incompatibility with the available TensorRT on Jetson Nano
+- Solution Tensorflow -> onnx -> Inference [this](https://forums.developer.nvidia.com/t/tf-trt-model-very-slow-to-load-with-poor-performance/167819/5)
+
+## onnx to trt [e.g](https://github.com/NVIDIA/TensorRT/issues/183)
